@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login | CPD Portal</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom Styles -->
+    <style>
+        :root {
+            --primary-color: #0a0860;
+            --secondary-color: #1cc88a;
+            --accent-color: #f6c23e;
+            --light-color: #f8f9fc;
+            --dark-color: #0a0860;
+        }
+
+        body {
+            background-color: var(--light-color);
+            font-family: 'Nunito', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-container-wrapper {
+            position: absolute;
+            left: -70px;
+            top: -5%;
+            transform: translateY(-50%);
+        }
+
+        .logo-container {
+            background-color: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+        }
+
+        .logo-img {
+            height: 50px;
+            width: auto;
+            max-width: 100%;
+            object-fit: contain;
+        }
+
+        @media (max-width: 768px) {
+            .hero-section {
+                padding-top: 80px;
+            }
+            
+            .logo-container-wrapper {
+                position: static;
+                transform: none;
+                text-align: center;
+                margin: 0 auto 20px;
+                left: auto;
+                top: auto;
+            }
+            
+            .logo-container {
+                display: inline-block;
+            }
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-color), #1f1daa);
+            color: white;
+            padding: 4rem 0;
+            border-radius: 0 0 0.5rem 0.5rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 0.15rem 1.75rem rgba(58, 59, 69, 0.15);
+        }
+
+        .login-card {
+            max-width: 500px;
+            margin: 0 auto 3rem;
+            border: none;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.15rem 1.75rem rgba(58, 59, 69, 0.15);
+        }
+
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1.25rem 1.5rem;
+            border-radius: 0.5rem 0.5rem 0 0 !important;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .form-control {
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d3e2;
+            border-radius: 0.35rem;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(241, 79, 42, 0.25);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+            font-weight: 600;
+        }
+
+        footer {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 1.5rem 0;
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <header class="hero-section">
+        <div class="container position-relative">
+            <!-- Logo container with responsive positioning -->
+            <div class="logo-container-wrapper">
+                <div class="logo-container">
+                    <img src="{{ url_for('static', filename='images/logo_mt.jpg') }}" 
+                         alt="CPD Portal Logo" 
+                         class="logo-img">
+                </div>
+            </div>
+            
+            <!-- Centered content -->
+            <div class="text-center">
+                <h1 class="display-4 fw-bold mb-3">
+                    <i class="fas fa-certificate me-2"></i> MALUK TIMOR CPD Portal
+                </h1>
+                <p class="lead mb-0">Continuing Professional Development Portal</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <section class="container mt-3">
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Login Form -->
+    <main class="container">
+        <div class="login-card card">
+            <div class="card-header text-center">
+                <h3 class="mb-0"><i class="fas fa-user-shield me-2"></i> Admin Authentication</h3>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('routes.loginadmin') }}">
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text" name="username" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <input type="password" name="password" class="form-control" required>
+                    </div>
+                    {% if error %}
+                        <div class="alert alert-danger">{{ error }}</div>
+                    {% endif %}
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt me-2"></i> Login
+                        </button>
+                        <button type="button" class="btn btn-secondary">
+                            <i class="fas fa-key me-2"></i> Forgot Password
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center">
+        <div class="container">
+            <p class="mb-0">
+                &copy; <span id="year"></span> CPD Portal Maluk Timor.
+            </p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Set current year dynamically -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('year').textContent = new Date().getFullYear();
+        });
+    </script>
+</body>
+</html>

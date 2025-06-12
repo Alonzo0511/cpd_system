@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Admin | Admin Management System</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --dark-color: #5a5c69;
+        }
+        body {
+            background-color: #f8f9fc;
+            font-family: 'Nunito', sans-serif;
+        }
+        .edit-card {
+            max-width: 600px;
+            margin: 2rem auto;
+            border: none;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.15rem 1.75rem rgba(58, 59, 69, 0.15);
+        }
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 0.5rem 0.5rem 0 0;
+            padding: 1.25rem 1.5rem;
+        }
+        .form-label {
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        .form-control {
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d3e2;
+            border-radius: 0.35rem;
+        }
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+        }
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        .action-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+        }
+    </style>
+</head>
+<body>
+<div class="container py-4">
+    <div class="edit-card card">
+        <div class="card-header">
+            <h3><i class="fas fa-user-shield me-2"></i>Edit Users Details</h3>
+        </div>
+        <div class="card-body p-4">
+            <form method="POST" action="{{ url_for('routes.update_users', user_id=users[user_id]) }}">
+                <input type="hidden" name="user_id" value="{{ users[user_id] }}">
+
+                <div class="mb-4">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" id="username" name="username" class="form-control"
+                           value="{{ users[username] }}" required>
+                </div>
+
+                <div class="mb-4">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" id="password" name="password" class="form-control"
+                           value="{{ users[password] }}" required>
+                </div>
+
+                                <div class="mb-4">
+                     <label for="role">Role</label>
+                        <select name="role" id="role" class="form-control" required>
+                            <option value="" selected disabled>Select role</option>
+                            <option value="admin">Admin</option>
+                            <option value="super_admin">Super Admin</option>
+                        </select>
+                </div>
+
+                <div class="action-buttons mt-4">
+                    <a href="{{ url_for('routes.users') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i> Back to List
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i> Update users
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

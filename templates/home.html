@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPD SYSTEM</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #0a0860;
+            --secondary-color: #13a13e;
+            --light-color: #f8f9fc;
+            --dark-color: #5a5c69;
+            --accent-color: #f6c23e;
+            --gradient-start: #0a0860;
+            --gradient-end: #0a0860;
+        }
+        
+        body {
+            background-color: #f8f9fc;
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 2rem 0 rgba(58, 59, 69, 0.2);
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            color: white;
+            border-bottom: none;
+            padding: 1.25rem 1.5rem;
+            font-weight: 700;
+            border-radius: 0.5rem 0.5rem 0 0 !important;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: #3a5bc7;
+            border-color: #3a5bc7;
+        }
+        
+        .btn-success {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        .btn-success:hover {
+            background-color: #0f8a35;
+            border-color: #0f8a35;
+        }
+        
+        .dropdown-menu {
+            border-radius: 0.35rem;
+            box-shadow: 0 0.15rem 1.5rem 0 rgba(58, 59, 69, 0.2);
+            border: none;
+        }
+        
+        .dropdown-item:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .navbar-custom {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            box-shadow: 0 0.15rem 1.5rem 0 rgba(58, 59, 69, 0.2);
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+        }
+        
+        .navbar-brand {
+            color: white !important;
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+        
+        .nav-link {
+            color: rgba(255, 255, 255, 0.8) !important;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 0.35rem;
+        }
+        
+        .nav-link:hover, .nav-link:focus {
+            color: white !important;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .dropdown-toggle::after {
+            margin-left: 0.5em;
+            vertical-align: 0.15em;
+        }
+        
+        .action-buttons .btn {
+            margin-right: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        h1, h2, h3, h4 {
+            color: var(--dark-color);
+            font-weight: 700;
+        }
+        
+        .welcome-message {
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            box-shadow: 0 0.15rem 1.5rem 0 rgba(58, 59, 69, 0.1);
+            border-left: 5px solid var(--primary-color);
+        }
+        
+        .welcome-message h3 {
+            color: var(--primary-color);
+        }
+        
+        .quick-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .stat-card {
+            flex: 1;
+            min-width: 200px;
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 0.15rem 1.5rem 0 rgba(58, 59, 69, 0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-card i {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .stat-card h4 {
+            color: var(--dark-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-card p {
+            color: var(--dark-color);
+            opacity: 0.8;
+            margin-bottom: 0;
+        }
+        
+        @media (max-width: 768px) {
+            .quick-stats {
+                flex-direction: column;
+            }
+            
+            .stat-card {
+                min-width: 100%;
+            }
+            
+            .navbar-collapse {
+                background-color: white;
+                border-radius: 0.5rem;
+                padding: 1rem;
+                margin-top: 1rem;
+                box-shadow: 0 0.15rem 1.5rem 0 rgba(58, 59, 69, 0.1);
+            }
+            
+            .nav-link {
+                color: var(--dark-color) !important;
+            }
+        }
+    </style>
+</head>
+<body>
+  
+<div class="container py-4">
+    <!-- Navigation Bar with Dropdown -->
+    <nav class="navbar navbar-expand-lg navbar-custom mb-4">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">
+            <i class="fas fa-graduation-cap me-2"></i>CPD System
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"><i class="fas fa-bars" style="color: white;"></i></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNavDropdown">
+            <ul class="navbar-nav ms-auto">
+                <!-- Employees -->
+           <!-- For 'user' role -->
+{% if session['role'] == 'user' %}
+    <li class="nav-item">
+        <a href="{{ url_for('routes.base') }}" class="nav-link">
+            <i class="fas fa-edit me-1"></i> Event Registration
+        </a>
+    </li>
+
+<!-- For 'admin' role -->
+{% elif session['role'] == 'admin' %}
+    <li class="nav-item">
+        <a href="{{ url_for('routes.employee') }}" class="nav-link">
+            <i class="fas fa-users me-1"></i> Employees
+        </a>
+    </li>
+    <li class="nav-item">
+        <a href="{{ url_for('routes.events') }}" class="nav-link">
+            <i class="fas fa-calendar me-1"></i> Events
+        </a>
+    </li>
+    <li class="nav-item">
+        <a href="{{ url_for('routes.report') }}" class="nav-link">
+            <i class="fas fa-chart-bar me-1"></i> Report
+        </a>
+    </li>
+        <!-- For 'super_admin' role -->
+        {% elif session['role'] == 'super_admin' %}
+            <li class="nav-item">
+                <a href="{{ url_for('routes.employee') }}" class="nav-link">
+                    <i class="fas fa-users me-1"></i> Employees
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('routes.events') }}" class="nav-link">
+                    <i class="fas fa-calendar me-1"></i> Events
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('routes.report') }}" class="nav-link">
+                    <i class="fas fa-chart-bar me-1"></i> Report
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('routes.users') }}" class="nav-link">
+                    <i class="fas fa-user-shield me-1"></i> Manage Users
+                </a>
+            </li>
+        {% endif %}
+
+                <!-- Logout -->
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('routes.loginadmin') }}">
+                        <i class="fas fa-sign-out-alt me-1"></i> Logout
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+    <!-- Welcome Card -->
+    <div class="card mb-4">
+        <div class="card-body welcome-message">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h3>Welcome back to CPD System!</h3>
+                    <p class="mb-0">Manage your continuing professional development activities, track your progress, and generate reports all in one place.</p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <img src="https://via.placeholder.com/150" alt="Welcome Image" class="img-fluid" style="max-height: 100px;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="quick-stats">
+        <div class="stat-card">
+            <i class="fas fa-calendar-check"></i>
+            <!-- <h4>24</h4> -->
+            <p>Upcoming Events</p>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-users"></i>
+            <!-- <h4>156</h4> -->
+            <p>Active Users</p>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-certificate"></i>
+            <!-- <h4>87%</h4> -->
+            <p>Completion Rate</p>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-clock"></i>
+            <!-- <h4>12.5</h4> -->
+            <p>Avg. Hours/User</p>
+        </div>
+    </div>
+
+    <!-- Recent Activity Card -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-bell me-2"></i>Recent Activity</h5>
+        </div>
+        <!-- <div class="card-body">
+            <div class="list-group">
+                <a href="#" class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">New event created</h6>
+                        <small>2 hours ago</small>
+                    </div>
+                    <p class="mb-1">"Annual Medical Conference 2023" was added to the system.</p>
+                </a>
+                <a href="#" class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">User registration</h6>
+                        <small>5 hours ago</small>
+                    </div>
+                    <p class="mb-1">Dr. Sarah Johnson registered for the system.</p>
+                </a>
+                <a href="#" class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">Report generated</h6>
+                        <small>1 day ago</small>
+                    </div>
+                    <p class="mb-1">Quarterly CPD compliance report was downloaded.</p>
+                </a>
+            </div>
+        </div> -->
+    </div>
+</div>
+
+<!-- Bootstrap JS Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

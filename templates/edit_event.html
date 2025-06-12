@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Event | Event Management System</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #1cc88a;
+            --accent-color: #f6c23e;
+            --light-color: #f8f9fc;
+            --dark-color: #5a5c69;
+        }
+        
+        body {
+            background-color: #f8f9fc;
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        
+        .edit-card {
+            max-width: 800px;
+            margin: 2rem auto;
+            border: none;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        }
+        
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            border-bottom: none;
+            border-radius: 0.5rem 0.5rem 0 0 !important;
+            padding: 1.25rem 1.5rem;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-control {
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d3e2;
+            border-radius: 0.35rem;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+        }
+        
+        .form-control:disabled {
+            background-color: #f8f9fa;
+            opacity: 1;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            padding: 0.5rem 1.5rem;
+        }
+        
+        .btn-secondary {
+            padding: 0.5rem 1.5rem;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+            margin-top: 1.5rem;
+        }
+        
+        .badge-points {
+            background-color: var(--secondary-color);
+            color: white;
+            font-weight: bold;
+            padding: 0.5rem 0.75rem;
+            font-size: 1rem;
+        }
+        
+        .section-title {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.5rem;
+            margin: 1.5rem 0 1rem;
+        }
+    </style>
+</head>
+<body>
+   <div class="container py-4">
+    <div class="edit-card card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="mb-0"><i class="fas fa-calendar-edit me-2"></i>Edit Event Details</h3>
+                <span class="badge-points">{{ event.cpd_points }} CPD Points</span>
+            </div>
+        </div>
+        <div class="card-body p-4">
+            <form method="POST" action="{{ url_for('routes.update_event', id_event=event.id_event) }}">
+                <input type="hidden" name="id_event" value="{{ event.id_event }}">
+
+                <h5 class="section-title"><i class="fas fa-info-circle me-2"></i>Basic Information</h5>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Date of event</label>
+                        <input type="date" name="date" class="form-control" value="{{ event.date }}" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Time of event</label>
+                        <input type="time" name="time" class="form-control" value="{{ event.time }}" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Organizer</label>
+                        <input type="text" name="organizer" class="form-control" value="{{ event.organizer }}" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">CPD Points</label>
+                        <input type="number" name="cpd_points" class="form-control" value="{{ event.cpd_points }}" required min="0" step="0.5">
+                    </div>
+                </div>
+
+                <h5 class="section-title mt-4"><i class="fas fa-chalkboard-teacher me-2"></i>Session Information</h5>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Session Title</label>
+                        <input type="text" name="session_title" class="form-control" value="{{ event.session_title }}" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Session Topic</label>
+                        <input type="text" name="session_topic" class="form-control" value="{{ event.session_topic }}" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Session Subtopic</label>
+                        <input type="text" name="session_subtopic" class="form-control" value="{{ event.session_subtopic }}" required>
+                    </div>
+                </div>
+
+                <div class="action-buttons mt-4">
+                    <a href="{{ url_for('routes.events') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

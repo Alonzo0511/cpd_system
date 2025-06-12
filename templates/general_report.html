@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>General CPD Report</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        @media print {
+            .no-print {
+                display: none;
+            }
+        }
+        .logo {
+            max-height: 80px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<div class="container mt-4">
+    <!-- Logo and Title -->
+    <div class="text-center mb-4">
+        <img src="{{ url_for('static', filename='images/logo_mt.jpg') }}" alt="Logo" class="logo mb-2">
+        <h3>General CPD Report</h3>
+    </div>
+
+    <!-- Filter Form -->
+    <form method="POST" class="row g-3 mb-4 no-print">
+        <div class="col-md-4">
+            <label for="start_date" class="form-label">Start Date</label>
+            <input type="date" class="form-control" name="start_date" id="start_date" value="{{ start_date }}">
+        </div>
+        <div class="col-md-4">
+            <label for="end_date" class="form-label">End Date</label>
+            <input type="date" class="form-control" name="end_date" id="end_date" value="{{ end_date }}">
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100">Filter</button>
+        </div>
+    </form>
+
+    <!-- Date Range Display -->
+    {% if start_date and end_date %}
+        <p class="text-muted">Showing reports from <strong>{{ start_date }}</strong> to <strong>{{ end_date }}</strong></p>
+    {% endif %}
+
+    <!-- Report Table -->
+    {% if data %}
+        <div class="table-responsive">
+            <table class="table table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th>Employee ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Total CPD Points</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in data %}
+                        <tr>
+                            <td>{{ row[0] }}</td>
+                            <td>{{ row[1] }}</td>
+                            <td>{{ row[2] }}</td>
+                            <td>{{ row[3] }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p>No data available.</p>
+    {% endif %}
+
+    <!-- Buttons -->
+    <div class="text-center mt-4 no-print">
+        <a href="{{ url_for('routes.report') }}" class="btn btn-secondary me-2">Back to report form</a>
+        <button onclick="window.print()" class="btn btn-success">Print Report</button>
+    </div>
+</div>
+
+</body>
+</html>

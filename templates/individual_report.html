@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CPD Report | {{ reports[0][2] if reports else 'Employee' }}</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #0a0860;
+            --secondary-color: #bf4d0f;
+            --accent-color: #f6c23e;
+            --light-color: #f8f9fc;
+            --dark-color: #5a5c69;
+        }
+        
+        body {
+            background-color: #f8f9fc;
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        
+        .report-card {
+            max-width: 900px;
+            margin: 2rem auto;
+            border: none;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        }
+        
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            border-bottom: none;
+            border-radius: 0.5rem 0.5rem 0 0 !important;
+            padding: 1.25rem 1.5rem;
+        }
+        
+        .employee-info {
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 0.15rem 0.5rem 0 rgba(58, 59, 69, 0.1);
+        }
+        
+        .table {
+            color: var(--dark-color);
+        }
+        
+        .table thead th {
+            background-color: var(--primary-color);
+            color: white;
+            border-bottom: none;
+        }
+        
+        .table-hover tbody tr:hover {
+            background-color: rgba(78, 115, 223, 0.05);
+        }
+        
+        .total-row {
+            background-color: rgba(28, 200, 138, 0.1) !important;
+            font-weight: 600;
+        }
+        
+        .points-badge {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-weight: 600;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .no-data {
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 0.15rem 0.5rem 0 rgba(58, 59, 69, 0.1);
+        }
+        
+        .no-data i {
+            font-size: 3rem;
+            color: #d1d3e2;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <div class="report-card card">
+            <div class="card-header text-center">
+                <h3 class="mb-0"><i class="fas fa-file-alt me-2"></i>Individual CPD Report</h3>
+            </div>
+            
+            <div class="card-body">
+                {% if reports %}
+                    <!-- Employee Information -->
+                    <div class="employee-info">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <h5><i class="fas fa-id-card me-2"></i>Employee Details</h5>
+                                <hr>
+                                <p><strong>Employee ID:</strong><br>{{ reports[0][1] }}</p>
+                                <p><strong>Name:</strong><br>{{ reports[0][2] }}</p>
+                                <p><strong>Email:</strong><br>{{ reports[0][3] }}</p>
+                            </div>
+                            <div class="col-md-8">
+                                <h5><i class="fas fa-chart-pie me-2"></i>CPD Summary</h5>
+                                <hr>
+                                <div class="d-flex justify-content-around text-center">
+                                    <div>
+                                        <div class="display-4">{{ reports|length }}</div>
+                                        <div class="text-muted">Events Attended</div>
+                                    </div>
+                                    <div>
+                                        <div class="display-4 points-badge">{{ total_points }}</div>
+                                        <div class="text-muted">Total Points Earned</div>
+                                    </div>
+                                
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="POST" action="{{ url_for('routes.get_report') }}" class="row g-3 mb-4">
+                        <input type="hidden" name="employeeid" value="{{ reports[0][1] if reports else '' }}">
+                        <div class="col-md-4">
+                            <label for="year" class="form-label">Filter by Year</label>
+                            <select class="form-select" id="year" name="year" required>
+                                {% for y in years %}
+                                <option value="{{ y }}" {% if selected_year == y %}selected{% endif %}>{{ y }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4 align-self-end">
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-filter me-1"></i> Filter</button>
+                        </div>
+                    </form>
+
+                    
+                    <!-- Events Table -->
+                    <div class="table-responsive">
+                        <table class="table table-hover table-bordered">
+                            <thead>
+                                <tr>
+                                    <th><i class="fas fa-calendar-day me-1"></i> Date</th>
+                                    <th><i class="fas fa-chalkboard me-1"></i> Session Title</th>
+                                    <th class="text-center"><i class="fas fa-star me-1"></i> CPD Points</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for r in reports %}
+                                    <tr>
+                                        <td>{{ r[4] }}</td>
+                                        <td>{{ r[6] }}</td>
+                                        <td class="text-center"><span class="points-badge">{{ r[7] }}</span></td>
+                                    </tr>
+                                {% endfor %}
+                                <tr class="total-row">
+                                    <td colspan="2" class="text-end"><strong>Total Points:</strong></td>
+                                    <td class="text-center"><strong class="points-badge">{{ total_points }}</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <!-- No Data Found -->
+                    <div class="no-data">
+                        <i class="fas fa-file-exclamation"></i>
+                        <h4>No CPD Report Found</h4>
+                        <p class="text-muted">No training records exist for this employee</p>
+                    </div>
+                {% endif %}
+                
+                <!-- Action Buttons -->
+                <div class="text-center mt-4">
+                    <a href="{{ url_for('routes.base') }}" class="btn btn-primary">
+                        <i class="fas fa-arrow-left me-1"></i> Back to Register
+                    </a>
+                    <button onclick="window.print()" class="btn btn-success ms-2">
+                        <i class="fas fa-print me-1"></i> Print Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

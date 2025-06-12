@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPD Portal | Professional Development</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom Styles -->
+    <style>
+        :root {
+            --primary-color: #0a0860;
+            --secondary-color: #1cc88a;
+            --accent-color: #f6c23e;
+            --light-color: #f8f9fc;
+            --dark-color: #0a0860;
+        }
+
+        body {
+            background-color: var(--light-color);
+            font-family: 'Nunito', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+ /* Logo container positioning */
+.logo-container-wrapper {
+    position: absolute;
+    left: -70px;
+    top: -5%;
+    transform: translateY(-50%);
+}
+
+.logo-container {
+    background-color: white;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    display: inline-block;
+}
+
+.logo-img {
+    height: 50px;
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    .hero-section {
+        padding-top: 80px; /* Add space for the logo */
+    }
+    
+    .logo-container-wrapper {
+        position: static;
+        transform: none;
+        text-align: center;
+        margin: 0 auto 20px;
+        left: auto;
+        top: auto;
+    }
+    
+    .logo-container {
+        display: inline-block;
+    }
+}
+
+        .admin-login {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-color), #1f1daa);
+            color: white;
+            padding: 4rem 0;
+            border-radius: 0 0 0.5rem 0.5rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 0.15rem 1.75rem rgba(58, 59, 69, 0.15);
+        }
+
+        .registration-card {
+            max-width: 800px;
+            margin: 0 auto 3rem;
+            border: none;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.15rem 1.75rem rgba(58, 59, 69, 0.15);
+        }
+
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1.25rem 1.5rem;
+            border-radius: 0.5rem 0.5rem 0 0 !important;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .form-control {
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d3e2;
+            border-radius: 0.35rem;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(241, 79, 42, 0.25);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .benefits-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .benefits-list li {
+            position: relative;
+            padding-left: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .benefits-list li::before {
+            content: "\f00c";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            color: var(--secondary-color);
+            position: absolute;
+            left: 0;
+        }
+
+        footer {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 1.5rem 0;
+            margin-top: auto;
+        }
+
+
+        
+    </style>
+</head>
+<body>
+            <div class="container py-4">
+                <!-- Header Card -->
+                <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-0"><i class="fas fa- me-2"></i></h2>
+                </div>
+
+                <div>
+                    <a href="{{ url_for('routes.home') }}" class="btn btn-outline-light">
+                        <i class="fas fa-home me-1"></i> Home
+                </a>
+                </div>
+            </div>
+
+
+
+<!-- Flash Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <section class="container mt-3">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    {% endif %}
+{% endwith %}
+
+    <!-- Main Content -->
+    <main class="container">
+        <div class="registration-card card">
+            <div class="card-header text-center">
+                <h3 class="mb-0"><i class="fas fa-calendar-check me-2"></i> Event Registration</h3>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('routes.register_event') }}" class="row g-3">
+                    <div class="col-12 col-md-6">
+                        <label for="employeeid" class="form-label">Employee ID</label>
+                        <input type="text" name="employeeid" id="employeeid" class="form-control" placeholder="Hatama Employee ID" required>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label for="id_event" class="form-label">Event ID</label>
+                        <input type="text" name="id_event" id="id_event" class="form-control" placeholder="Hatama class code" required>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label for="comment" class="form-label">Comment (optional)</label>
+                        <textarea name="comment" id="comment" class="form-control" placeholder="Any thought about this CPD event?"></textarea>
+                    </div>
+                    <div class="col-12 mt-3">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-user-plus me-2"></i> Register for Event
+                        </button>
+                    </div>
+                </form>
+                <!-- New form for checking individual reports -->
+                <form method="POST" action="{{ url_for('routes.get_report') }}" class="row g-3 mt-4">
+                    <div class="card-header text-center">
+                        <h3 class="mb-0"><i class="fas fa-star me-2"></i> Check total points</h3>
+                    </div>
+                    <div class="col-12 col-md-6 offset-md-3 text-center">
+                        <label for="check_employeeid" class="form-label">Employee ID</label>
+                        <input type="text" name="employeeid" id="check_employeeid" class="form-control" 
+                            placeholder="Hatama Employee ID" required>
+                    </div>
+                    
+                    <div class="col-12 col-md-6 offset-md-3 mt-3">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search me-2"></i> Check Reports
+                        </button>
+                    </div>
+                </form>
+            
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Divider -->
+<!-- <hr class="my-4">
+    <footer class="text-center">
+        <div class="container">
+            <p class="mb-0">
+                &copy; <span id="year"></span> CPD Portal Maluk Timor.
+            </p>
+        </div>
+    </footer> -->
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Set current year dynamically -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('year').textContent = new Date().getFullYear();
+        });
+    </script>
+</body>
+</html>
