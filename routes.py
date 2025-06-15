@@ -32,7 +32,9 @@ def base():
 # ================================= Routes for Home =========================#
 @routes.route('/home', methods=['GET'])
 def home():
-    return render_template('home.html')
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    return render_template('home.html', username=session.get('username'))
 
 #======================= Routes for login admin/user ===========================#
 
@@ -55,6 +57,7 @@ def loginadmin():
             flash("Wrong username or password")
 
     return render_template('login.html')
+    
 
 
 
