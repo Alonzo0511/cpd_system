@@ -57,7 +57,9 @@ def loginadmin():
             flash("Wrong username or password")
 
     return render_template('login.html')
-    
+
+
+# Logout Routes
 
 
 

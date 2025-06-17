@@ -1,0 +1,10 @@
+alembic
+click
+dotenv
+Flask
+Flask-Login
+Flask-Migrate
+Flask-MySQL
+Flask-SQLAlchemy
+Jinja2
+SQLAlchemy

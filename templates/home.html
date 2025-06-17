@@ -259,9 +259,9 @@
             </li>
         {% endif %}
                 <!-- Logout -->
-<div class="dropdown d-inline-block me-2">
+<div class="dropdown">
     <button class="btn btn-secondary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-      <i class="fas fa-sign-out-alt me-1"></i> Welcome | {{ username }}
+           <i class="fas fa-user me-1"></i> {{ username }}
     </button>
     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
         <li><a class="dropdown-item" href="{{ url_for('routes.loginadmin') }}">
