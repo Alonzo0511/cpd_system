@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary-color: #0a0860;
+            --primary-color: #0c5170;
             --secondary-color: #0ca33a;
             --third-color: #bbee14;
             --accent-color: #f6c23e;
@@ -19,7 +19,7 @@
         }
         
         body {
-            background-color: #f8f9fc;
+            background-color: rgba(12, 12, 12, 0.849);
             font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         }
         
@@ -140,7 +140,7 @@
                 <!-- Add Event Form -->
                 <div class="card mb-4">
                     <div class="card-header">
-                        <h4 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Create New Event</h4>
+                        <h6 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Create New Event</h6>
                     </div>
                     <div class="card-body">
                         <form method="POST" action="{{ url_for('routes.add_events') }}" class="row g-3">
@@ -195,7 +195,7 @@
                 <!-- Events List -->
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h4 class="mb-0"><i class="fas fa-list me-2"></i>Event Directory</h4>
+                        <h6 class="mb-0"><i class="fas fa-list me-2"></i>Event Directory</h6>
                         <span class="badge bg-primary">{{ total }} Events</span>
                     </div>
                     <div class="card-body p-0">

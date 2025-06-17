@@ -101,12 +101,12 @@ def add_users():
 @login_required
 def edit_users(user_id):
     user = User.query.get(user_id)
-    return render_template('edit_users.html', users=user)
+    return render_template('edit_users.html', user=user)
 
 
 @routes.route('/update_users/<int:user_id>', methods=['POST'])
 @login_required
-def update_users_route(user_id):
+def update_users(user_id):
     username = request.form.get('username')
     password = request.form.get('password')
     role = request.form.get('role')
@@ -462,7 +462,7 @@ def get_report():
         return redirect(url_for('routes.base'))
 
     # Correct total_points calculation (index 7 = Event.cpd_points in result tuple)
-    total_points = sum(float(report[7]) for report in individual_reports)
+    total_points = sum(int(report[7]) for report in individual_reports)
 
 
     # Get list of distinct years for the dropdown

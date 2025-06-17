@@ -13,17 +13,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #0a0860;
+            --primary-color: #0c5170;
             --secondary-color: #13a13e;
             --light-color: #f8f9fc;
             --dark-color: #5a5c69;
             --accent-color: #f6c23e;
-            --gradient-start: #0a0860;
-            --gradient-end: #0a0860;
+            --gradient-start: #0c5170;
+            --gradient-end: #0c5170;
         }
         
         body {
-            background-color: #f8f9fc;
+            background-color: rgba(12, 12, 12, 0.849);
             font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         }
         
@@ -285,7 +285,7 @@
                     <p class="mb-0">Manage your continuing professional development activities, track your progress, and generate reports all in one place.</p>
                 </div>
                 <div class="col-md-4 text-md-end">
-                    <img src="https://via.placeholder.com/150" alt="Welcome Image" class="img-fluid" style="max-height: 100px;">
+                    <img src="{{ url_for('static', filename='images/logo_mt.jpg') }}" alt="Welcome Image" class="img-fluid" style="max-height: 100px;">
                 </div>
             </div>
         </div>

@@ -10,11 +10,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary-color: #4e73df;
+            --primary-color: #ffffff;
+            --secondary-color: #0ca33a;
             --dark-color: #5a5c69;
         }
         body {
-            background-color: #f8f9fc;
+            background-color: #0c5170 ;
             font-family: 'Nunito', sans-serif;
         }
         .edit-card {
@@ -26,7 +27,7 @@
         }
         .card-header {
             background-color: var(--primary-color);
-            color: white;
+            color: rgb(0, 0, 0);
             border-radius: 0.5rem 0.5rem 0 0;
             padding: 1.25rem 1.5rem;
         }
@@ -44,8 +45,9 @@
             box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
         }
         .btn-primary {
-            background-color: var(--primary-color);
+            background-color: var(--secondary-color);
             border-color: var(--primary-color);
+            
         }
         .action-buttons {
             display: flex;
@@ -61,25 +63,26 @@
             <h3><i class="fas fa-user-shield me-2"></i>Edit Users Details</h3>
         </div>
         <div class="card-body p-4">
-            <form method="POST" action="{{ url_for('routes.update_users', user_id=users[user_id]) }}">
-                <input type="hidden" name="user_id" value="{{ users[user_id] }}">
+            <form method="POST" action="{{ url_for('routes.update_users', user_id=user.user_id) }}">
+                <input type="hidden" name="user_id" value="{{ user_id }}">
 
                 <div class="mb-4">
                     <label for="username" class="form-label">Username</label>
                     <input type="text" id="username" name="username" class="form-control"
-                           value="{{ users[username] }}" required>
+                           value="{{ user.username }}" required>
                 </div>
 
                 <div class="mb-4">
                     <label for="password" class="form-label">Password</label>
                     <input type="password" id="password" name="password" class="form-control"
-                           value="{{ users[password] }}" required>
+                           value="{{ user.password }}" required>
                 </div>
 
                                 <div class="mb-4">
                      <label for="role">Role</label>
                         <select name="role" id="role" class="form-control" required>
                             <option value="" selected disabled>Select role</option>
+                             <option value="user">User</option>
                             <option value="admin">Admin</option>
                             <option value="super_admin">Super Admin</option>
                         </select>
