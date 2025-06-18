@@ -4,6 +4,8 @@ from flask_login import login_required, current_user
 from functools import wraps
 from extensions import db
 from sqlalchemy import extract, func
+from datetime import datetime
+
 
 
 
@@ -405,29 +407,45 @@ def delete_report(id_report):
 
 @routes.route('/general_report', methods=['GET', 'POST'])
 def general_report():
-    start_date = request.form.get('start_date')
-    end_date = request.form.get('end_date')
+    start_date_str = request.form.get('start_date')
+    end_date_str = request.form.get('end_date')
 
-    # Build base query
+    start_date = None
+    end_date = None
+
+    try:
+        if start_date_str:
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+        if end_date_str:
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
+    except ValueError:
+        flash('Invalid date format.', 'danger')
+        return redirect(url_for('routes.general_report'))
+
+    # Convert to string for query, matching database format
+    start_str = start_date.strftime('%Y-%m-%d') if start_date else None
+    end_str = end_date.strftime('%Y-%m-%d') if end_date else None
+
     query = db.session.query(
         Report.employeeid,
         Report.name,
         Report.email,
-        func.sum(Report.cpd_points).label('total_points')
+        func.sum(func.cast(Report.cpd_points, db.Integer)).label('total_points')
     )
 
-    if start_date and end_date:
-        query = query.filter(Report.date.between(start_date, end_date))
+    if start_str and end_str:
+        query = query.filter(Report.date.between(start_str, end_str))
 
-    query = query.group_by(Report.employeeid, Report.name, Report.email).order_by(func.sum(Report.cpd_points).desc())
+    query = query.group_by(Report.employeeid, Report.name, Report.email)\
+                 .order_by(func.sum(func.cast(Report.cpd_points, db.Float)).desc())
 
     data = query.all()
 
     return render_template(
         'general_report.html',
         data=data,
-        start_date=start_date,
-        end_date=end_date
+        start_date=start_date_str,
+        end_date=end_date_str
     )
 #========================================== Individual Report ===========================================#
 
