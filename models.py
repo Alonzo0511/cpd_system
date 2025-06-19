@@ -12,11 +12,11 @@ class User(db.Model):
 
 class Employee(db.Model):
     __tablename__ = 'employee'
-
     id = db.Column(db.Integer, primary_key=True)
-    employeeid = db.Column(db.String(50), nullable=False)
+    employeeid = db.Column(db.String(50), nullable=False, unique=True)
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), nullable=False)
+    reports = db.relationship('Report', backref='employee', lazy=True)
 
 
 class Event(db.Model):
@@ -27,21 +27,23 @@ class Event(db.Model):
     date = db.Column(db.Date, nullable=False)
     time = db.Column(db.String(50), nullable=False)
     organizer = db.Column(db.String(100), nullable=False)
-    cpd_points = db.Column(db.Numeric(10, 2), nullable=False)
+    cpd_points = db.Column(db.Integer, nullable=False)
     session_title = db.Column(db.String(200), nullable=False)
     session_topic = db.Column(db.String(200), nullable=False)
     session_subtopic = db.Column(db.String(200), nullable=False)
+
+    reports = db.relationship('Report', backref='events', lazy=True)
 
 class Report(db.Model):
     __tablename__ = 'report'
 
     id_report = db.Column(db.Integer, primary_key=True)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-    employeeid = db.Column(db.String(50), nullable=False)
+    employee_id = db.Column(db.Integer, db.ForeignKey('employee.id'), nullable=False)
     email = db.Column(db.String(120), nullable=False)
     name = db.Column(db.String(100), nullable=False)
     date = db.Column(db.Date, nullable=False)
-    id_event = db.Column(db.String(50), nullable=False)
+    id_event = db.Column(db.Integer, db.ForeignKey('events.id_event'), nullable=False)
     session_title = db.Column(db.String(50), nullable=False)
     cpd_points = db.Column(db.Integer, nullable=False)
     comment = db.Column(db.Text, nullable=True)

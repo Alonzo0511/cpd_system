@@ -5,6 +5,10 @@ from functools import wraps
 from extensions import db
 from sqlalchemy import extract, func
 from datetime import datetime
+import csv
+import io
+from flask import Response
+
 
 
 
@@ -422,22 +426,18 @@ def general_report():
         flash('Invalid date format.', 'danger')
         return redirect(url_for('routes.general_report'))
 
-    # Convert to string for query, matching database format
-    start_str = start_date.strftime('%Y-%m-%d') if start_date else None
-    end_str = end_date.strftime('%Y-%m-%d') if end_date else None
-
     query = db.session.query(
-        Report.employeeid,
-        Report.name,
-        Report.email,
-        func.sum(func.cast(Report.cpd_points, db.Integer)).label('total_points')
-    )
+        Employee.employeeid,
+        Employee.name,
+        Employee.email,
+        func.sum(Report.cpd_points).label('total_points')
+    ).join(Report, Employee.id == Report.employee_id)
 
-    if start_str and end_str:
-        query = query.filter(Report.date.between(start_str, end_str))
+    if start_date and end_date:
+        query = query.filter(Report.date.between(start_date, end_date))
 
-    query = query.group_by(Report.employeeid, Report.name, Report.email)\
-                 .order_by(func.sum(func.cast(Report.cpd_points, db.Float)).desc())
+    query = query.group_by(Employee.employeeid, Employee.name, Employee.email)\
+                 .order_by(func.sum(Report.cpd_points).desc())
 
     data = query.all()
 
@@ -447,6 +447,7 @@ def general_report():
         start_date=start_date_str,
         end_date=end_date_str
     )
+
 #========================================== Individual Report ===========================================#
 
 @routes.route('/get_report', methods=['POST'])
@@ -454,10 +455,16 @@ def get_report():
     employeeid = request.form['employeeid']
     year = request.form.get('year')
 
-    # Build the query
+    # Look up the primary key for this employeeid
+    employee = Employee.query.filter_by(employeeid=employeeid).first()
+    if not employee:
+        flash('No such employee ID!', 'danger')
+        return redirect(url_for('routes.base'))
+
+    # Build the query using employee_id (the integer PK)
     query = db.session.query(
         Report.id_report,
-        Report.employeeid,
+        Employee.employeeid,  # or Report.employee_id if you want the PK
         Employee.name,
         Employee.email,
         Event.date,
@@ -465,11 +472,10 @@ def get_report():
         Event.session_title,
         Event.cpd_points,
         Report.comment
-    ).join(Employee, Report.employeeid == Employee.employeeid
+    ).join(Employee, Report.employee_id == Employee.id
     ).join(Event, Report.id_event == Event.id_event
-    ).filter(Report.employeeid == employeeid)
+    ).filter(Report.employee_id == employee.id)
 
-    # Filter by year if provided
     if year:
         query = query.filter(extract('year', Event.date) == int(year))
 
@@ -479,15 +485,13 @@ def get_report():
         flash('No reports found for this employee ID or year!', 'warning')
         return redirect(url_for('routes.base'))
 
-    # Correct total_points calculation (index 7 = Event.cpd_points in result tuple)
+    # cpd_points is at index 7
     total_points = sum(int(report[7]) for report in individual_reports)
 
-
-    # Get list of distinct years for the dropdown
     year_query = db.session.query(
         extract('year', Event.date).label('year')
     ).join(Report, Report.id_event == Event.id_event
-    ).filter(Report.employeeid == employeeid
+    ).filter(Report.employee_id == employee.id
     ).distinct().order_by(db.desc('year'))
 
     years = [row.year for row in year_query]
@@ -496,7 +500,7 @@ def get_report():
         'individual_report.html',
         reports=individual_reports,
         total_points=total_points,
-        employee_name=individual_reports[0][2],  # Employee name from query result
+        employee_name=employee.name,
         years=years,
         selected_year=int(year) if year else None
     )
@@ -508,7 +512,7 @@ def delete_report_from_db(id_report):
         db.session.delete(report)
         db.session.commit()
 
-
+#================ To show date in table form report =============== #
 def get_report_paginated(search, page, per_page):
     offset = (page - 1) * per_page
     search_term = f"%{search}%"
@@ -516,7 +520,8 @@ def get_report_paginated(search, page, per_page):
     query = db.session.query(
         Report.id_report,
         Report.timestamp,
-        Report.employeeid,
+        Report.employee_id,
+        Employee.employeeid,
         Employee.name,
         Event.date,
         Employee.email,
@@ -524,7 +529,7 @@ def get_report_paginated(search, page, per_page):
         Event.session_title,
         Event.cpd_points,
         Report.comment
-    ).join(Employee, Report.employeeid == Employee.employeeid
+    ).join(Employee, Report.employee_id == Employee.id
     ).join(Event, Report.id_event == Event.id_event
     ).filter(
         db.or_(
@@ -560,7 +565,7 @@ def count_report(search):
 
 @routes.route('/register_event', methods=['POST'])
 def register_event():
-    employeeid = request.form['employeeid']
+    employeeid = request.form['employee_id']  # Get the string employee code
     id_event = request.form['id_event']
     comment = request.form.get('comment', '')
 
@@ -569,30 +574,37 @@ def register_event():
         flash('Event not found!', 'danger')
         return redirect(url_for('routes.base'))
 
+    # Look up employee by code!
+    employee = Employee.query.filter_by(employeeid=employeeid).first()
+    if not employee:
+        flash('Employee not found!', 'danger')
+        return redirect(url_for('routes.base'))
+
     session_title = event.session_title
     cpd_points = event.cpd_points
 
-    success = save_report(employeeid, id_event, session_title, cpd_points, comment)
+    # Pass the PK (integer) to save_report!
+    success = save_report(employee.id, id_event, session_title, cpd_points, comment)
 
     if success:
         flash('Event registered successfully!', 'success')
     else:
-        flash('Could not register event. Employee not found or duplicate entry.', 'danger')
+        flash('Could not register event. Duplicate entry?', 'danger')
 
     return redirect(url_for('routes.base'))
 
 
 
-def save_report(employeeid, id_event, session_title, cpd_points, comment):
+def save_report(employee_id, id_event, session_title, cpd_points, comment):
     try:
         # Check for duplicate
-        existing = Report.query.filter_by(employeeid=employeeid, id_event=id_event).first()
+        existing = Report.query.filter_by(employee_id=employee_id, id_event=id_event).first()
         if existing:
             flash('You have already registered for this event.', 'warning')
             return False
 
         # Get employee info
-        employee = Employee.query.filter_by(employeeid=employeeid).first()
+        employee = Employee.query.get(employee_id)
         if not employee:
             flash('Employee ID not found.', 'danger')
             return False
@@ -604,7 +616,7 @@ def save_report(employeeid, id_event, session_title, cpd_points, comment):
             return False
 
         report = Report(
-            employeeid=employeeid,
+            employee_id=employee_id,
             email=employee.email,
             name=employee.name,
             date=event.date,
@@ -626,6 +638,48 @@ def save_report(employeeid, id_event, session_title, cpd_points, comment):
 def get_report_by_id(id_report):
     return Report.query.filter_by(id_report=id_report).first()
 
+
+@routes.route('/export_report_csv')
+def export_report_csv():
+    # Build your query (add filters if needed)
+    query = db.session.query(
+        Report.id_report,
+        Report.timestamp,
+        Report.employee_id,
+        Employee.employeeid,
+        Employee.name,
+        Event.date,
+        Employee.email,
+        Report.id_event,
+        Event.session_title,
+        Event.cpd_points,
+        Report.comment
+    ).join(Employee, Report.employee_id == Employee.id
+    ).join(Event, Report.id_event == Event.id_event
+    ).order_by(Report.id_report.asc())
+    
+    reports = query.all()
+
+    # Use StringIO as a file-like buffer
+    si = io.StringIO()
+    cw = csv.writer(si)
+    # Write header
+    cw.writerow([
+        "Report ID", "Timestamp", "Employee DB ID", "Employee Code",
+        "Employee Name", "Event Date", "Employee Email", "Event ID",
+        "Session Title", "CPD Points", "Comment"
+    ])
+    # Write rows
+    for r in reports:
+        cw.writerow([str(field) if field is not None else "" for field in r])
+
+    output = si.getvalue()
+    si.close()
+    return Response(
+        output,
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment;filename=cpd_report.csv"}
+    )
 
 
 #================================= Routes for backup event =========================#
@@ -657,21 +711,6 @@ def get_report_by_id(id_report):
 #         mimetype='text/csv',
 #         headers={"Content-Disposition": f"attachment;filename=events_backup_{year}.csv"}
 #     )
-
-
-#================================= Routes for delete event =========================#
-
-# @routes.route('/delete_events', methods=['POST'])
-# def delete_events():
-#     year = request.form['year']
-#     cur = mysql.connection.cursor()
-
-#     cur.execute("DELETE FROM events WHERE YEAR(timestamp) = %s", (year,))
-#     mysql.connection.commit()
-#     cur.close()
-
-#     flash(f"Events for year {year} have been deleted.", "success")
-#     return redirect(url_for('routes.events'))
 
 
 
@@ -721,47 +760,6 @@ def get_report_by_id(id_report):
 
 #     return render_template('import_backup.html')
 
-
-#================================= Routes for backup report =========================#
-
-# @routes.route('/backup_reports', methods=['POST'])
-# def backup_reports():
-#     year = request.form['year']
-
-#     cur = mysql.connection.cursor()
-#     cur.execute("""
-#         SELECT * FROM report WHERE YEAR(timestamp) = %s
-#     """, (year,))
-#     reports = cur.fetchall()
-
-#     headers = [i[0] for i in cur.description]
-
-#     si = StringIO()
-#     cw = csv.writer(si)
-#     cw.writerow(headers)
-#     cw.writerows(reports)
-
-#     cur.close()
-
-#     return Response(
-#         si.getvalue(),
-#         mimetype='text/csv',
-#         headers={"Content-Disposition": f"attachment;filename=report_backup_{year}.csv"}
-#     )
-
-#================================= Routes for delete report =========================#
-
-# @routes.route('/delete_reports', methods=['POST'])
-# def delete_reports():
-#     year = request.form['year']
-#     cur = mysql.connection.cursor()
-
-#     cur.execute("DELETE FROM report WHERE YEAR(timestamp) = %s", (year,))
-#     mysql.connection.commit()
-#     cur.close()
-
-#     flash(f"Reports for year {year} have been deleted.", "success")
-#     return redirect(url_for('routes.reports'))  # Change if your report page has a different route
 
 
 # ======================= for tracking backend activity ====================================#
