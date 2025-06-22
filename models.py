@@ -1,5 +1,4 @@
 from extensions import db
-from sqlalchemy import Column, DateTime, func
 from datetime import datetime
 
 
@@ -22,8 +21,8 @@ class Employee(db.Model):
 class Event(db.Model):
     __tablename__ = 'events'
 
-    id_event = db.Column(db.Integer, primary_key=True)
-    timestamp = Column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
+    id_event = db.Column(db.String(10), primary_key=True)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     date = db.Column(db.Date, nullable=False)
     time = db.Column(db.String(50), nullable=False)
     organizer = db.Column(db.String(100), nullable=False)
@@ -43,7 +42,7 @@ class Report(db.Model):
     email = db.Column(db.String(120), nullable=False)
     name = db.Column(db.String(100), nullable=False)
     date = db.Column(db.Date, nullable=False)
-    id_event = db.Column(db.Integer, db.ForeignKey('events.id_event'), nullable=False)
+    id_event = db.Column(db.String(10), db.ForeignKey('events.id_event'), nullable=False)
     session_title = db.Column(db.String(50), nullable=False)
     cpd_points = db.Column(db.Integer, nullable=False)
     comment = db.Column(db.Text, nullable=True)

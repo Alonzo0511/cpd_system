@@ -8,6 +8,8 @@ from datetime import datetime
 import csv
 import io
 from flask import Response
+import random
+import string
 
 
 
@@ -275,11 +277,23 @@ def events():
 
 
 
+def generate_custom_id_event():
+    # Generate 4 to 5 digits + 1 random uppercase letter
+    digits = str(random.randint(1000, 99999))  # 4–5 digits
+    letter = random.choice(string.ascii_uppercase)
+    return digits + letter
+
 
 @routes.route('/add_events', methods=['POST'])
 @login_required
 def add_events():
-    id_event = request.form.get('id_event')
+    # Auto-generate a unique id_event
+    id_event = generate_custom_id_event()
+    
+    # Check for duplicate
+    while Event.query.get(id_event):
+        id_event = generate_custom_id_event()
+
     timestamp = request.form.get('timestamp')    
     date = request.form.get('date')
     time = request.form.get('time')
@@ -288,7 +302,23 @@ def add_events():
     session_title = request.form.get('session_title')
     session_topic = request.form.get('session_topic')
     session_subtopic = request.form.get('session_subtopic')
-    add_event_to_db(id_event, timestamp, date, time, organizer, cpd_points, session_title, session_topic, session_subtopic)
+
+    # Create event with SQLAlchemy
+    new_event = Event(
+        id_event=id_event,
+        timestamp=timestamp,
+        date=date,
+        time=time,
+        organizer=organizer,
+        cpd_points=cpd_points,
+        session_title=session_title,
+        session_topic=session_topic,
+        session_subtopic=session_subtopic
+    )
+
+    db.session.add(new_event)
+    db.session.commit()
+
     return redirect(url_for('routes.events'))
 
 
