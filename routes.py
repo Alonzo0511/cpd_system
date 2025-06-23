@@ -4,6 +4,7 @@ from flask_login import login_required, current_user
 from functools import wraps
 from extensions import db
 from sqlalchemy import extract, func
+from sqlalchemy.sql import func
 from datetime import datetime
 import csv
 import io
@@ -246,8 +247,9 @@ def get_employee_paginated(search='', page=1, per_page=5):
         db.or_(
             Employee.name.like(f"%{search}%"),
             Employee.email.like(f"%{search}%")
+
         )
-    ).order_by(Employee.id.asc())
+    ).order_by(Employee.id.desc())
 
     paginated = query.paginate(page=page, per_page=per_page, error_out=False)
     return paginated.items, paginated.total
@@ -279,7 +281,7 @@ def events():
 
 def generate_custom_id_event():
     # Generate 4 to 5 digits + 1 random uppercase letter
-    digits = str(random.randint(1000, 99999))  # 4–5 digits
+    digits = str(random.randint(1000, 9999))  # 4–5 digits
     letter = random.choice(string.ascii_uppercase)
     return digits + letter
 
@@ -294,7 +296,7 @@ def add_events():
     while Event.query.get(id_event):
         id_event = generate_custom_id_event()
 
-    timestamp = request.form.get('timestamp')    
+  
     date = request.form.get('date')
     time = request.form.get('time')
     organizer = request.form.get('organizer')
@@ -306,7 +308,7 @@ def add_events():
     # Create event with SQLAlchemy
     new_event = Event(
         id_event=id_event,
-        timestamp=timestamp,
+        timestamp=datetime.utcnow(),
         date=date,
         time=time,
         organizer=organizer,
@@ -322,7 +324,6 @@ def add_events():
     return redirect(url_for('routes.events'))
 
 
-
 @routes.route('/events/edit/<id_event>', methods=['GET'])
 @login_required
 def edit_event(id_event):
@@ -333,7 +334,7 @@ def edit_event(id_event):
 @routes.route('/events/update/<id_event>', methods=['POST'])
 @login_required
 def update_event(id_event):
-    timestamp = request.form.get('timestamp')
+
     date = request.form.get('date')
     time = request.form.get('time')
     organizer = request.form.get('organizer')
@@ -342,10 +343,10 @@ def update_event(id_event):
     session_topic = request.form.get('session_topic')
     session_subtopic = request.form.get('session_subtopic')
 
-    update_event_in_db(id_event, timestamp, date, time, organizer, cpd_points, session_title, session_topic, session_subtopic)
+    update_event_in_db(id_event, date, time, organizer, cpd_points, session_title, session_topic, session_subtopic)
     return redirect(url_for('routes.events'))
 
-@routes.route('/delete_event/<int:id_event>')
+@routes.route('/delete_event/<string:id_event>')
 @login_required
 def delete_event(id_event):
     delete_event_by_id(id_event)
@@ -387,10 +388,9 @@ def get_events_paginated(search='', page=1, per_page=5):
 def get_event_by_id(id_event):
     return Event.query.filter_by(id_event=id_event).first()
 
-def update_event_in_db(id_event, timestamp, date, time, organizer, cpd_points, session_title, session_topic, session_subtopic):
+def update_event_in_db(id_event, date, time, organizer, cpd_points, session_title, session_topic, session_subtopic):
     event = Event.query.filter_by(id_event=id_event).first()
     if event:
-        event.timestamp = timestamp
         event.date = date
         event.time = time
         event.organizer = organizer

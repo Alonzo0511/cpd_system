@@ -1,5 +1,6 @@
 from extensions import db
 from datetime import datetime
+from sqlalchemy.sql import func
 
 
 class User(db.Model):
@@ -22,7 +23,7 @@ class Event(db.Model):
     __tablename__ = 'events'
 
     id_event = db.Column(db.String(10), primary_key=True)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    timestamp = db.Column(db.DateTime, server_default=func.now(), onupdate=func.now())
     date = db.Column(db.Date, nullable=False)
     time = db.Column(db.String(50), nullable=False)
     organizer = db.Column(db.String(100), nullable=False)
