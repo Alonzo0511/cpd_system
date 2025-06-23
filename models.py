@@ -45,7 +45,13 @@ class Report(db.Model):
     __tablename__ = 'report'
 
     id_report = db.Column(db.Integer, primary_key=True)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    timestamp = db.Column(
+        db.DateTime(timezone=True),
+        server_default=text('CURRENT_TIMESTAMP'),
+        default=func.now(),
+        onupdate=func.now(),
+        nullable=False
+    )
     employee_id = db.Column(db.Integer, db.ForeignKey('employee.id'), nullable=False)
     email = db.Column(db.String(120), nullable=False)
     name = db.Column(db.String(100), nullable=False)
