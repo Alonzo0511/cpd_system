@@ -5,7 +5,8 @@ from functools import wraps
 from extensions import db
 from sqlalchemy import extract, func
 from sqlalchemy.sql import func
-from datetime import datetime
+from datetime import datetime, timezone
+now_utc = datetime.now(timezone.utc)
 import csv
 import io
 from flask import Response
@@ -308,7 +309,6 @@ def add_events():
     # Create event with SQLAlchemy
     new_event = Event(
         id_event=id_event,
-        timestamp=datetime.utcnow(),
         date=date,
         time=time,
         organizer=organizer,
@@ -356,10 +356,9 @@ def delete_event(id_event):
 def get_all_events():
     return Event.query.all()
 
-def add_event_to_db(id_event, timestamp, date, time, organizer, cpd_points, session_title, session_topic, session_subtopic):
+def add_event_to_db(id_event, date, time, organizer, cpd_points, session_title, session_topic, session_subtopic):
     new_event = Event(
         id_event=id_event,
-        timestamp=timestamp,
         date=date,
         time=time,
         organizer=organizer,
@@ -405,7 +404,6 @@ def delete_event_by_id(id_event):
     if event:
         db.session.delete(event)
         db.session.commit()
-#==================================== END ==========================================#
 
 
 # #======================= General Report routes ==============================
