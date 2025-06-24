@@ -281,10 +281,14 @@ def events():
 
 
 def generate_custom_id_event():
-    # Generate 4 to 5 digits + 1 random uppercase letter
-    digits = str(random.randint(1000, 9999))  # 4–5 digits
+    # Randomly choose between 4 and 5 digits
+    digit_length = random.choice([4, 5])
+    digits = str(random.randint(10**(digit_length-1), 10**digit_length - 1))
+    
     letter = random.choice(string.ascii_uppercase)
-    return digits + letter
+    position = random.randint(0, len(digits))
+    
+    return digits[:position] + letter + digits[position:]
 
 
 @routes.route('/add_events', methods=['POST'])
