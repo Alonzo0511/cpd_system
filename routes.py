@@ -2,13 +2,15 @@ from flask import Blueprint, render_template, request, redirect, url_for, sessio
 from models import Event, Report, Employee, User
 from flask_login import login_required, current_user
 from functools import wraps
+from werkzeug.utils import secure_filename
 from extensions import db
 from sqlalchemy import extract, func
 from sqlalchemy.sql import func
 from datetime import datetime, timezone
 now_utc = datetime.now(timezone.utc)
 import csv
-import io
+import io 
+from io import TextIOWrapper
 from flask import Response
 import random
 import string
@@ -258,8 +260,6 @@ def get_employee_paginated(search='', page=1, per_page=5):
 
 
 
-
-
 #=================================== Routes events ================================#
 @routes.route('/events', methods=['GET'])
 @login_required
@@ -416,21 +416,18 @@ def delete_event_by_id(id_event):
 @routes.route('/report')
 @login_required
 def report():
-    search = request.args.get('search', '')
-    page = int(request.args.get('page', 1))
+    search = request.args.get('search', '', type=str)
+    page = request.args.get('page', 1, type=int)
     per_page = 20
 
-    data, total = get_report_paginated(search, page, per_page)
-    total_pages = (total + per_page - 1) // per_page
+    reports, total, pages = get_report_paginated(search, page, per_page)
 
     return render_template('reports.html',
-                           reports=data,
+                           reports=reports,
                            total=total,
-                           search=search,
                            page=page,
-                           pages=total_pages)
-
-
+                           pages=pages,
+                           search=search)
 
 @routes.route('/report/delete/<int:id_report>')
 def delete_report(id_report):
@@ -479,6 +476,57 @@ def general_report():
         start_date=start_date_str,
         end_date=end_date_str
     )
+
+
+@routes.route('/export_report')
+def export_report():
+    start_date_str = request.args.get('start_date')
+    end_date_str = request.args.get('end_date')
+
+    start_date = None
+    end_date = None
+
+    try:
+        if start_date_str:
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+        if end_date_str:
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
+    except ValueError:
+        flash('Invalid date format.', 'danger')
+        return redirect(url_for('routes.general_report'))
+
+    query = db.session.query(
+        Employee.employeeid,
+        Employee.name,
+        Employee.email,
+        func.sum(Report.cpd_points).label('total_points')
+    ).join(Report, Employee.id == Report.employee_id)
+
+    if start_date and end_date:
+        query = query.filter(Report.date.between(start_date, end_date))
+
+    query = query.group_by(Employee.employeeid, Employee.name, Employee.email)\
+                 .order_by(func.sum(Report.cpd_points).desc())
+
+    data = query.all()
+
+    # Create CSV response
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(['Employee ID', 'Name', 'Email', 'Total CPD Points'])
+
+    for row in data:
+        writer.writerow([row[0], row[1], row[2], int(row[3]) if row[3] else 0])
+
+    output.seek(0)
+    return Response(
+        output,
+        mimetype='text/csv',
+        headers={
+            'Content-Disposition': f'attachment; filename=general_report_{start_date_str}_to_{end_date_str}.csv'
+        }
+    )
+
 
 #========================================== Individual Report ===========================================#
 
@@ -552,8 +600,7 @@ def get_report_paginated(search, page, per_page):
     query = db.session.query(
         Report.id_report,
         Report.timestamp,
-        Report.employee_id,
-        Employee.employeeid,
+        Employee.employeeid,  # ✅ show employeeid not employee_id
         Employee.name,
         Event.date,
         Employee.email,
@@ -569,12 +616,14 @@ def get_report_paginated(search, page, per_page):
             Employee.email.ilike(search_term),
             Event.session_title.ilike(search_term)
         )
-    ).order_by(Report.id_report.asc())
+    ).order_by(Report.id_report.desc())
 
-    reports = query.limit(per_page).offset(offset).all()
     total = query.count()
+    pages = (total + per_page - 1) // per_page
+    reports = query.limit(per_page).offset(offset).all()
 
-    return reports, total
+    return reports, total, pages  # ✅ return 3 values
+
 
 
 
@@ -714,114 +763,59 @@ def export_report_csv():
     )
 
 
-#================================= Routes for backup event =========================#
-
-# @routes.route('/backup_events', methods=['POST'])
-# def backup_events():
-#     year = request.form['year']
-
-#     cur = mysql.connection.cursor()
-#     cur.execute("""
-#         SELECT * FROM events WHERE YEAR(timestamp) = %s
-#     """, (year,))
-#     events = cur.fetchall()
-
-#     # CSV headers
-#     headers = [i[0] for i in cur.description]
-
-#     # Save to CSV
-
-#     si = StringIO()
-#     cw = csv.writer(si)
-#     cw.writerow(headers)
-#     cw.writerows(events)
-
-#     cur.close()
-
-#     return Response(
-#         si.getvalue(),
-#         mimetype='text/csv',
-#         headers={"Content-Disposition": f"attachment;filename=events_backup_{year}.csv"}
-#     )
+def parse_date(date_str):
+    for fmt in ("%Y-%m-%d", "%Y-%b-%d", "%Y-%B-%d"):
+        try:
+            return datetime.strptime(date_str, fmt).date()
+        except ValueError:
+            continue
+    raise ValueError(f"Date format not supported: {date_str}")
 
 
 
-#================================= Routes for import backups =========================#
+@routes.route('/import_report_csv', methods=['POST'])
+def import_report_csv():
+    if 'csv_file' not in request.files:
+        flash('No file uploaded', 'danger')
+        return redirect(url_for('routes.report'))
 
-# @routes.route('/import_backup', methods=['GET', 'POST'])
-# def import_backup():
-#     if request.method == 'POST':
-#         file = request.files['csv_file']
-#         if file:
-#             filename = secure_filename(file.filename)
-#             filepath = os.path.join('backups', filename)
-#             file.save(filepath)
+    file = request.files['csv_file']
+    if file.filename == '':
+        flash('No selected file', 'danger')
+        return redirect(url_for('routes.report'))
 
-#             if filename.endswith('.sql'):
-#                 try:
-#                     cmd = f'mysql -u root cpd_db < "{filepath}"'
-#                     subprocess.call(cmd, shell=True)
-#                     flash('SQL backup imported successfully.', 'success')
-#                 except Exception as e:
-#                     flash(f'Error importing SQL backup: {str(e)}', 'danger')
+    stream = TextIOWrapper(file.stream, encoding='utf-8-sig')
+    reader = csv.DictReader(stream)
 
-#             elif filename.endswith('.csv'):
-#                 try:
-#                     with open(filepath, newline='', encoding='utf-8') as csvfile:
-#                         reader = csv.reader(csvfile)
-#                         headers = next(reader)  # Skip header row
+    imported = 0
+    for row in reader:
+        try:
+            employee = Employee.query.filter_by(employeeid=row['employeeid']).first()
+            event = Event.query.filter_by(id_event=row['id_event']).first()
+            if not employee or not event:
+                continue
 
-#                         conn = mysql.connection
-#                         cursor = conn.cursor()
+            timestamp = datetime.strptime(row['timestamp'], '%Y-%m-%d %H:%M:%S')
+            event_date = parse_date(row['date'])
 
-#                         for row in reader:
-#                             # example for employee table: adjust for your own table/columns
-#                             cursor.execute("INSERT INTO employee (id, name, email) VALUES (%s, %s, %s)", row)
+            report = Report(
+                timestamp=timestamp,
+                employee_id=employee.id,
+                email=row['email'],
+                name=row['name'],
+                date=event_date,
+                id_event=row['id_event'],
+                session_title=row['session_title'],
+                cpd_points=int(row['cpd_points']),
+                comment=row.get('comment', '')
+            )
+            db.session.add(report)
+            imported += 1
 
-#                         conn.commit()
-#                         cursor.close()
+        except Exception as e:
+            print(f"Error importing row: {row} - {e}")
+            continue
 
-#                     flash('CSV data imported successfully.', 'success')
-#                 except Exception as e:
-#                     flash(f'Error importing CSV: {str(e)}', 'danger')
-
-#             else:
-#                 flash('Please upload a valid .sql or .csv file.', 'warning')
-
-#         return redirect(url_for('routes.report'))
-
-#     return render_template('import_backup.html')
-
-
-
-# ======================= for tracking backend activity ====================================#
-
-# def log_action(user_id, action, table_name, record_id, details=''):
-#     cur = mysql.connection.cursor()
-#     cur.execute("""
-#         INSERT INTO audit_log (id, action, table_name, record_id, details)
-#         VALUES (%s, %s, %s, %s, %s)
-#     """, (user_id, action, table_name, record_id, details))
-#     mysql.connection.commit()
-#     cur.close()
-
-
-
-# ====================== Routes to view audit logs =================================#
-# @routes.route('/audit_log')
-# @login_required
-# def audit_log():
-#     if current_user.role not in ['super_admin']:
-#         flash('Access denied.', 'danger')
-#         return redirect(url_for('routes.employee'))  # or another page
-
-#     cur = mysql.connection.cursor()
-#     cur.execute("""
-#         SELECT a.id, u.username, a.action, a.table_name, a.record_id, a.timestamp, a.details
-#         FROM audit_log a
-#         JOIN users u ON a.id = u.id
-#         ORDER BY a.timestamp DESC
-#     """)
-#     logs = cur.fetchall()
-#     cur.close()
-#     return render_template('audit_log.html', logs=logs)
+    db.session.commit()
+    flash(f'Successfully imported {imported} reports', 'success')
+    return redirect(url_for('routes.report'))

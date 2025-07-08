@@ -73,10 +73,18 @@
     {% endif %}
 
     <!-- Buttons -->
-    <div class="text-center mt-4 no-print">
-        <a href="{{ url_for('routes.report') }}" class="btn btn-secondary me-2">Back to report form</a>
-        <button onclick="window.print()" class="btn btn-success">Print Report</button>
-    </div>
+<div class="text-center mt-4 no-print">
+    <a href="{{ url_for('routes.report') }}" class="btn btn-outline-secondary me-3">
+        <i class="fas fa-arrow-left me-1"></i> Back to Report
+    </a>
+    <button onclick="window.print()" class="btn btn-outline-success me-3">
+        <i class="fas fa-print me-1"></i> Print Report
+    </button>
+    <a href="{{ url_for('routes.export_report', start_date=start_date, end_date=end_date) }}" 
+       class="btn btn-info">
+       <i class="fas fa-file-csv me-1"></i> Export CSV
+    </a>
+</div>
 </div>
 
 </body>
