@@ -57,6 +57,21 @@
     </style>
 </head>
 <body>
+    <script>
+    function togglePassword() {
+        const password = document.getElementById("password");
+        const confirmPassword = document.getElementById("confirm_password");
+
+        if (password.type === "password") {
+            password.type = "text";
+            confirmPassword.type = "text";
+        } else {
+            password.type = "password";
+            confirmPassword.type = "password";
+        }
+    }
+</script>
+
 <div class="container py-4">
     <div class="edit-card card">
         <div class="card-header">
@@ -75,17 +90,26 @@
                 <div class="mb-4">
                     <label for="password" class="form-label">Password</label>
                     <input type="password" id="password" name="password" class="form-control"
-                           value="{{ user.password }}" required>
+                        value="{{ user.password }}" required>
+
+                    <label for="confirm_password" class="form-label mt-2">Confirm Password</label>
+                    <input type="password" id="confirm_password" name="confirm_password" class="form-control"
+                        value="{{ user.password }}" required>
+
+                    <div class="form-check mt-2">
+                        <input type="checkbox" class="form-check-input" id="showPassword" onclick="togglePassword()">
+                        <label class="form-check-label" for="showPassword">Show Password</label>
+                    </div>
                 </div>
 
-                                <div class="mb-4">
+                <div class="mb-4">
                      <label for="role">Role</label>
-                        <select name="role" id="role" class="form-control" required>
-                            <option value="" selected disabled>Select role</option>
-                             <option value="user">User</option>
-                            <option value="admin">Admin</option>
-                            <option value="super_admin">Super Admin</option>
-                        </select>
+                    <select name="role" id="role" class="form-control" required>
+                        <option value="" disabled>Select role</option>
+                        <option value="user" {% if user.role == 'user' %}selected{% endif %}>User</option>
+                        <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
+                        <option value="super_admin" {% if user.role == 'super_admin' %}selected{% endif %}>Super Admin</option>
+                    </select>
                 </div>
 
                 <div class="action-buttons mt-4">

@@ -79,35 +79,62 @@
                 <div class="card-header text-center">
                     <h3>Admin Register</h3>
                 </div>
-                <div class="card-body">
-                    <form method="POST" action="{{ url_for('routes.add_users') }}">
-                        <div class="mb-3">
-                            <label>Username</label>
-                            <input type="email" name="username" class="form-control" required placeholder="@maluktimor.org">
-                        </div>
-                        <div class="mb-3">
-                            <label>Password</label>
-                            <input type="password" name="password" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="role">Role</label>
-                            <select name="role" id="role" class="form-control" required>
-                                <option value="" selected disabled>Select role</option>
-                                <option value="user">User</option>
-                                <option value="admin">Admin</option>
-                                <option value="super_admin">Super Admin</option>
-                            </select>
-                        </div>
+                    <div class="card-body">
+                        <form method="POST" action="{{ url_for('routes.add_users') }}">
+                            <div class="mb-3">
+                                <label>Username</label>
+                                <input type="email" name="username" class="form-control" required placeholder="@maluktimor.org">
+                            </div>
 
-                        {% if error %}
-                        <div class="alert alert-danger">{{ error }}</div>
-                        {% endif %}
-                        <button type="submit" class="btn btn-success w-100">Register</button>
-                    </form>
-                    <div class="text-center mt-3">
-                        <a href="{{ url_for('routes.home') }}">Back to Home</a>
+                            <div class="mb-3">
+                                <label>Password</label>
+                                <input type="password" name="password" id="password" class="form-control" required>
+
+                                <label class="mt-2">Confirm Password</label>
+                                <input type="password" name="confirm_password" id="confirm_password" class="form-control" required>
+                            </div>
+
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" onclick="togglePassword()" id="showPasswordCheck">
+                                <label class="form-check-label" for="showPasswordCheck">Show Password</label>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="role">Role</label>
+                                <select name="role" id="role" class="form-control" required>
+                                    <option value="" selected disabled>Select role</option>
+                                    <option value="user">User</option>
+                                    <option value="admin">Admin</option>
+                                    <option value="super_admin">Super Admin</option>
+                                </select>
+                            </div>
+                            <script>
+                            function togglePassword() {
+                                var passwordField = document.getElementById("password");
+                                var confirmField = document.getElementById("confirm_password");
+
+                                if (passwordField.type === "password") {
+                                    passwordField.type = "text";
+                                    confirmField.type = "text";
+                                } else {
+                                    passwordField.type = "password";
+                                    confirmField.type = "password";
+                                }
+                            }
+                            </script>
+
+                            {% if error %}
+                            <div class="alert alert-danger">{{ error }}</div>
+                            {% endif %}
+
+                            <button type="submit" class="btn btn-success w-100">Register</button>
+                        </form>
+
+                        <div class="text-center mt-3">
+                            <a href="{{ url_for('routes.home') }}">Back to Home</a>
+                        </div>
                     </div>
-                </div>
+
             </div>
         </div>
     </div>

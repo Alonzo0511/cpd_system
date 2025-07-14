@@ -1,8 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
 from models import Event, Report, Employee, User
-from flask_login import login_required, current_user
+from flask_login import login_required
 from functools import wraps
-from werkzeug.utils import secure_filename
 from extensions import db
 from sqlalchemy import extract, func
 from sqlalchemy.sql import func
@@ -100,7 +99,12 @@ def users():
 def add_users():
     username = request.form.get('username')
     password = request.form.get('password')
+    confirm_password = request.form.get('confirm_password')
     role = request.form.get('role')
+
+    if password != confirm_password:
+            flash('Passwords do not match!', 'danger')
+            return redirect(url_for('routes.users'))
 
     new_user = User(username=username, password=password, role=role)
     db.session.add(new_user)
@@ -121,7 +125,12 @@ def edit_users(user_id):
 def update_users(user_id):
     username = request.form.get('username')
     password = request.form.get('password')
+    confirm_password = request.form.get('confirm_password')
     role = request.form.get('role')
+
+    if password != confirm_password:
+        flash('Passwords do not match!', 'danger')
+        return redirect(url_for('routes.edit_users', user_id=user_id))
 
     user = User.query.get(user_id)
     if user:
