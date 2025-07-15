@@ -10,6 +10,7 @@ class User(db.Model):
     username = db.Column(db.String(100), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(50), nullable=False)
+    must_change_password = db.Column(db.Boolean, default=False, nullable=False)
 
 class Employee(db.Model):
     __tablename__ = 'employee'

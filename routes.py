@@ -3,6 +3,7 @@ from models import Event, Report, Employee, User
 from flask_login import login_required
 from functools import wraps
 from extensions import db
+from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import extract, func
 from sqlalchemy.sql import func
 from datetime import datetime, timezone
@@ -56,22 +57,68 @@ def loginadmin():
         password = request.form['password']
 
         # Get user from database using SQLAlchemy
-        user = User.query.filter_by(username=username, password=password).first()
+        user = User.query.filter_by(username=username).first()
 
-        if user:
+        if user and check_password_hash(user.password, password):
             session['logged_in'] = True
             session['user_id'] = user.user_id
             session['username'] = user.username
             session['role'] = user.role
+
+            if user.must_change_password:
+                flash("You must change your password before proceeding.", "warning")
+                return redirect(url_for('routes.change_password'))
             return redirect(url_for('routes.home'))
         else:
             flash("Wrong username or password")
 
     return render_template('login.html')
 
+@routes.route('/change_password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    if request.method == 'POST':
+        new_password = request.form['new_password']
+        confirm_password = request.form['confirm_password']
 
-# Logout Routes
+        if new_password != confirm_password:
+            flash('Passwords do not match!', 'danger')
+            return redirect(url_for('routes.change_password'))
 
+        user_id = session.get('user_id')
+        user = User.query.get(user_id)
+        if user:
+            user.password = generate_password_hash(new_password)
+            user.must_change_password = True  # Reset the flag
+            db.session.commit()
+
+        flash("Password changed successfully", "success")
+        return redirect(url_for('routes.home'))  # or dashboard/home page
+
+    # This line was missing — needed for GET requests
+    return render_template('change_password.html')
+
+
+def generate_random_password(length=8):
+    """Generate a random password with letters, digits, and special characters."""
+    characters = string.ascii_letters + string.digits + string.punctuation
+    return ''.join(random.choice(characters) for _ in range(length))
+
+@routes.route('/reset_password/<int:user_id>', methods=['GET'])
+@login_required
+def reset_password(user_id):
+    user = User.query.get(user_id)
+    if user:
+        new_password = generate_random_password()
+        user.password = generate_password_hash(new_password)
+        user.must_change_password = True
+        db.session.commit()
+
+        flash(f"Password rest. New password: {new_password}", "info")
+        # Optionally, you can send the new password via email
+    else:
+        flash("User not found!", "danger")
+    return redirect(url_for('routes.users'))
 
 
 #===============================Routes for register users==============================#
@@ -98,18 +145,24 @@ def users():
 @login_required
 def add_users():
     username = request.form.get('username')
-    password = request.form.get('password')
-    confirm_password = request.form.get('confirm_password')
     role = request.form.get('role')
 
-    if password != confirm_password:
-            flash('Passwords do not match!', 'danger')
-            return redirect(url_for('routes.users'))
+    # Generate a random password
+    generated_password = generate_random_password()
+    hashed_password = generate_password_hash(generated_password)
 
-    new_user = User(username=username, password=password, role=role)
+    new_user = User(
+        username=username,
+        password=hashed_password,
+        role=role,
+        must_change_password=True  # force change on first login
+    )
+
     db.session.add(new_user)
     db.session.commit()
 
+    # Show the password on screen or send via email (you choose)
+    flash(f"User added successfully. Temporary password: {generated_password}", "info")
     return redirect(url_for('routes.users'))
 
 
