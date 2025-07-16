@@ -108,6 +108,12 @@
     .welcome-message p {
       color: var(--text-muted);
     }
+    .card-body-event {
+      background: var(--card-bg);
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      box-shadow: 0 2px 8px rgba(36, 107, 238, 0.4);
+    }
 
     /* Quick stats */
     .quick-stats {
@@ -115,6 +121,7 @@
       flex-wrap: wrap;
       gap: 1rem;
       margin-top: 1.5rem;
+      background: var(--card-bg);
     }
     .stat-card {
       flex: 1;
@@ -250,7 +257,7 @@
                 <li>
                   <a 
                     class="dropdown-item" 
-                    href="{{ url_for('routes.loginadmin') }}"
+                    href="{{ url_for('routes.logout') }}"
                   >
                     <i class="fas fa-sign-out-alt me-1"></i>Logout
                   </a>
@@ -287,13 +294,40 @@
 
     <!-- Quick Stats -->
     <div class="quick-stats">
-      <div class="stat-card">
-        <i class="fas fa-calendar-check"></i>
-        <p>Upcoming Events</p>
+      <div class="container mt-4">
+        <h4 class="text-white">Upcoming Events</h4>
+        <div class="card mt-3">
+          <div class="card-body-event">
+            {% if upcoming_events %}
+              <ul class="list-group">
+                {% for event in upcoming_events %}
+                  <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                      <strong>{{ event.session_title }}</strong><br>
+                    <small>
+                    {{ event.date.strftime('%d %B %Y') }}
+                    {% if event.time and event.time.strftime %}
+                      at {{ event.time.strftime('%H:%M') }}
+                    {% elif event.time %}
+                      at {{ event.time }}
+                    {% endif %}
+                  </small>
+                      <span>Organizer: {{ event.organizer }}</span>
+                    </div>
+                    <span class="badge bg-primary">{{ event.cpd_points }} CPD</span>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="text-muted mb-0">No upcoming events found.</p>
+            {% endif %}
+          </div>
+        </div>
       </div>
       <div class="stat-card">
         <i class="fas fa-users"></i>
-        <p>Active Users</p>
+        <h4>{{ total_user }}</h4>
+        <p>Active Employee</p>
       </div>
       <div class="stat-card">
         <i class="fas fa-certificate"></i>
@@ -307,13 +341,32 @@
 
     <!-- Recent Activity -->
     <div class="card mt-4">
-      <div class="card-header">
-        <h5 class="mb-0">
-          <i class="fas fa-bell me-2"></i>Recent Activity
-        </h5>
-      </div>
-      <!-- populate this list-group as needed -->
-    </div>
+  <div class="card-header">
+    <h5 class="mb-0">
+      <i class="fas fa-bell me-2"></i>Recent Activity
+    </h5>
+  </div>
+  <ul class="list-group list-group-flush">
+    <!-- {% for user in recent_users %}
+      <li class="list-group-item">
+        👤 New user registered: <strong>{{ user.username }}</strong> ({{ user.role }})
+      </li>
+    {% endfor %} -->
+    {% for event in recent_events %}
+      <li class="list-group-item">
+        <strong>{{ event.session_title }}</strong> on {{ event.date }}
+      </li>
+    {% endfor %}
+    <!-- {% for report in recent_reports %}
+      <li class="list-group-item">
+        📝 New report submitted by Employee ID: <strong>{{ report.employeeid }}</strong> for event ID: {{ report.id_event }}
+      </li>
+    {% endfor %} -->
+    {% if not recent_users and not recent_events and not recent_reports %}
+      <li class="list-group-item text-muted">No recent activity.</li>
+    {% endif %}
+  </ul>
+</div>
   </div>
 
   <!-- Bootstrap JS Bundle -->

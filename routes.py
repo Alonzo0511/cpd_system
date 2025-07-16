@@ -1,8 +1,9 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
 from models import Event, Report, Employee, User
-from flask_login import login_required
+from flask_login import login_required, logout_user, login_required
 from functools import wraps
-from extensions import db
+from extensions import db, login_manager
+from datetime import date, datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import extract, func
 from sqlalchemy.sql import func
@@ -42,12 +43,27 @@ def base():
 
 
 # ================================= Routes for Home =========================#
-@routes.route('/home', methods=['GET'])
+@routes.route('/home')
 def home():
     if 'user_id' not in session:
-        return redirect(url_for('login'))
-    return render_template('home.html', username=session.get('username'))
+        return redirect(url_for('routes.login'))
 
+
+    today = date.today()
+
+    upcoming_events = Event.query.filter(Event.date >= today).order_by(Event.date.asc()).limit(5).all()
+    total_user = User.query.count()
+
+    recent_events = Event.query.order_by(Event.date.desc()).limit(5).all()
+
+
+    return render_template(
+        'home.html',
+        username=session.get('username'),
+        upcoming_events=upcoming_events,
+        total_user=total_user,
+        recent_events=recent_events
+    )
 #======================= Routes for login admin/user ===========================#
 
 @routes.route('/', methods=['GET', 'POST'])
@@ -67,12 +83,24 @@ def loginadmin():
 
             if user.must_change_password:
                 flash("You must change your password before proceeding.", "warning")
-                return redirect(url_for('routes.change_password'))
+                return  redirect(url_for('routes.change_password'))
             return redirect(url_for('routes.home'))
         else:
             flash("Wrong username or password")
 
     return render_template('login.html')
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+@routes.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash("You have been logged out.", "info")
+    return redirect(url_for('routes.loginadmin'))
 
 @routes.route('/change_password', methods=['GET', 'POST'])
 @login_required
@@ -89,7 +117,7 @@ def change_password():
         user = User.query.get(user_id)
         if user:
             user.password = generate_password_hash(new_password)
-            user.must_change_password = True  # Reset the flag
+            user.must_change_password = False  # Reset the flag
             db.session.commit()
 
         flash("Password changed successfully", "success")
