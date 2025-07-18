@@ -56,18 +56,24 @@
                 padding-top: 80px;
             }
             
-            .logo-container-wrapper {
-                position: static;
-                transform: none;
-                text-align: center;
-                margin: 0 auto 20px;
-                left: auto;
-                top: auto;
-            }
-            
-            .logo-container {
-                display: inline-block;
-            }
+        .logo-container {
+        background-color: transparent;
+        padding: 10px;
+        box-shadow: none;
+        }
+        .logo-container-wrapper {
+        position: static;
+        transform: none;
+        text-align: center;
+        margin-bottom: 20px;
+        }
+
+        .logo-img {
+        height: 70px;
+        object-fit: contain;
+        }
+
+
         }
 
         .hero-section {
@@ -80,9 +86,10 @@
         }
 
         .login-card {
-            max-width: 500px;
-            margin: 0 auto 3rem;
+            max-width: 370px;
+            margin: 0 auto 2rem;
             border: none;
+            padding: auto;
             border-radius: 0.5rem;
             box-shadow: 0 0.15rem 1.75rem rgba(58, 59, 69, 0.15);
         }
@@ -135,20 +142,24 @@
     <header class="hero-section">
         <div class="container position-relative">
             <!-- Logo container with responsive positioning -->
-            <div class="logo-container-wrapper">
-                <div class="logo-container">
-                    <img src="{{ url_for('static', filename='images/logo_mt.jpg') }}" 
-                         alt="CPD Portal Logo" 
-                         class="logo-img">
-                </div>
-            </div>
+<!-- Logo container with responsive positioning -->
+<div class="logo-container-wrapper">
+  <div class="logo-container">
+    <img
+      src="{{ url_for('static', filename='images/maluk-timor-logo-login.png') }}"
+      alt="Maluk Timor Logo"
+      class="logo-img img-fluid"
+    />
+  </div>
+</div>
+
             
             <!-- Centered content -->
             <div class="text-center">
                 <h2 class="display-4 fw-bold mb-2">
-                    <i class="fas fa-certificate me-1"></i> MALUK TIMOR CPD Portal
+                    <i class="fas fa-graduation-cap me-2"></i> MALUK TIMOR CPD
                 </h2>
-                <p class="lead mb-0">Continuing Professional Development Portal</p>
+                <p class="lead mb-0">Continuing Professional Development</p>
             </div>
         </div>
     </header>
@@ -207,7 +218,7 @@
     <footer class="text-center">
         <div class="container">
             <p class="mb-0">
-                &copy; <span id="year"></span> CPD Portal Maluk Timor.
+                &copy; <span id="year"></span> CPD Maluk Timor.
             </p>
         </div>
     </footer>

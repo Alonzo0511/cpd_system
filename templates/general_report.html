@@ -46,6 +46,9 @@
 
     <!-- Report Table -->
     {% if data %}
+            <p class="fw-bold">
+          Total Employees: <strong>{{ data|length }}</strong>
+        </p>
         <div class="table-responsive">
             <table class="table table-bordered">
                 <thead class="table-light">

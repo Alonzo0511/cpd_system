@@ -1,12 +1,13 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session, flash
+from flask import Blueprint, render_template, request, redirect, url_for, session, flash, current_app
 from models import Event, Report, Employee, User
 from flask_login import login_required, logout_user, login_required
 from functools import wraps
-from extensions import db, login_manager
+from extensions import db, login_manager, mail
 from datetime import date, datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import extract, func
 from sqlalchemy.sql import func
+from sqlalchemy import desc
 from datetime import datetime, timezone
 now_utc = datetime.now(timezone.utc)
 import csv
@@ -15,6 +16,7 @@ from io import TextIOWrapper
 from flask import Response
 import random
 import string
+from flask_mail import Message
 
 
 
@@ -56,12 +58,25 @@ def home():
 
     recent_events = Event.query.order_by(Event.date.desc()).limit(5).all()
 
+    top_employees = (
+            db.session.query(
+                Employee.name,
+                db.func.sum(Report.cpd_points).label('total_points')
+            )
+            .join(Report, Employee.id == Report.employee_id)
+            .group_by(Employee.id, Employee.name)  # include Employee.name in group_by
+            .order_by(desc('total_points'))        # correct usage
+            .limit(5)
+            .all()
+        )
+
 
     return render_template(
         'home.html',
         username=session.get('username'),
         upcoming_events=upcoming_events,
         total_user=total_user,
+        top_employees=top_employees,
         recent_events=recent_events
     )
 #======================= Routes for login admin/user ===========================#
@@ -909,3 +924,122 @@ def import_report_csv():
     db.session.commit()
     flash(f'Successfully imported {imported} reports', 'success')
     return redirect(url_for('routes.report'))
+
+# This is Routes for sending emails about upcoming events
+
+def send_upcoming_events_email(recipient, events):
+    with current_app.app_context():
+        # build table rows
+        rows = ""
+        for event in events:
+            date_str = event.date.strftime('%d %B %Y') if hasattr(event.date, 'strftime') else event.date
+            time_str = event.time.strftime('%H:%M') if hasattr(event.time, 'strftime') else event.time
+            organizer_str = (event.organizer.strforganizer('string')
+                             if hasattr(event.organizer, 'strforganizer')
+                             else event.organizer)
+
+            rows += f"""
+            <tr>
+              <td style="padding:8px; border-bottom:1px solid #ddd;">
+                <strong>{event.session_title}</strong>
+              </td>
+              <td style="padding:8px; border-bottom:1px solid #ddd;">
+                {date_str} at {time_str}
+              </td>
+              <td style="padding:8px; border-bottom:1px solid #ddd;">
+                {organizer_str}
+              </td>
+            </tr>
+            """
+
+        # styled HTML email body
+        html_body = f"""
+        <div style="
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            padding: 20px;
+        ">
+          <h2 style="
+              color: #2c3e50;
+              margin-bottom: 10px;
+              border-left: 5px solid #3498db;
+              padding-left: 10px;
+          ">
+            Upcoming CPD Events
+          </h2>
+          <table style="
+              width: 100%;
+              border-collapse: collapse;
+              background: #ffffff;
+              box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+          ">
+            <thead>
+              <tr>
+                <th align="left" style="padding:8px; border-bottom:2px solid #3498db;">
+                  Title
+                </th>
+                <th align="left" style="padding:8px; border-bottom:2px solid #3498db;">
+                  Date &amp; Time
+                </th>
+                <th align="left" style="padding:8px; border-bottom:2px solid #3498db;">
+                  Organizer
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows}
+            </tbody>
+          </table>
+          <p style="
+              margin-top: 20px;
+              font-size: 16px;
+              color: #34495e;
+          ">
+            Make sure to <strong>register</strong> in time!
+            </p>
+            <br>
+            <footer style="
+              margin-top: 20px;
+                font-size: 10px;
+                color: #7f8c8d;
+            ">
+            <footer>
+            Do not reply to this email, as it is automatically generated.
+            </footer>
+        </div>
+        """
+
+        msg = Message(
+            subject="Upcoming CPD Events",
+            recipients=[recipient],
+            html=html_body,
+            sender=current_app.config['MAIL_USERNAME']
+        )
+        mail.send(msg)
+
+
+@routes.route('/send_upcoming_emails')
+def send_upcoming_emails():
+    today = datetime.today().date()
+    upcoming_events = Event.query.filter(Event.date >= today).order_by(Event.date).limit(5).all()
+
+    users = User.query.all()
+    for user in users:
+        send_upcoming_events_email(user.username, upcoming_events)
+
+    return "Emails sent to all users."
+
+@routes.route('/send_email_to_users', methods=['POST'])
+@login_required
+def send_email_to_users():
+    from datetime import datetime
+    today = datetime.today().date()
+
+    upcoming_events = Event.query.filter(Event.date >= today).order_by(Event.date).limit(5).all()
+    users = User.query.all()
+
+    for user in users:
+        send_upcoming_events_email(user.username, upcoming_events)
+
+    flash('Upcoming event emails sent to all users.', 'success')
+    return redirect(url_for('routes.home'))

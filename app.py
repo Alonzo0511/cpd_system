@@ -1,15 +1,25 @@
 # app.py
 from flask import Flask, session
-from extensions import db, migrate, login_manager  # Import from extensions
+from extensions import db, migrate, login_manager, mail  # Import from extensions
 from routes import routes  # Now safe to import
 from config import Config
+
+
 
 app = Flask(__name__)
 app.config.from_object(Config)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/cpd_db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'd21ffasda-secret-key'
-
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'  # Or your mail server
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'cpd@maluktimor.org'
+# app.config['MAIL_USERNAME'] = 'joaodorego@maluktimor.org'
+# app.config['MAIL_PASSWORD'] = 'tsel jnik ygve uabl'  # use App Password if Private Gmail
+# app.config['MAIL_PASSWORD'] = 'dxjp zdhg oyod xept'  # use App Password if Work Gmail
+app.config['MAIL_PASSWORD'] = 'kvbm dhsr noqk srnz'  # use App Password if Work Gmail
+mail.init_app(app)
 
 db.init_app(app)
 migrate.init_app(app, db)
