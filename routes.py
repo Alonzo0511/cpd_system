@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash, current_app
-from models import Event, Report, Employee, User
-from flask_login import login_required, logout_user, login_required
+from models import Event, Report, Employee, User, AuditLog
+from flask_login import login_user, login_required, logout_user, login_required, current_user
 from functools import wraps
 from extensions import db, login_manager, mail
 from datetime import date, datetime
@@ -17,9 +17,6 @@ from flask import Response
 import random
 import string
 from flask_mail import Message
-
-
-
 
 
 routes = Blueprint('routes', __name__)
@@ -91,10 +88,13 @@ def loginadmin():
         user = User.query.filter_by(username=username).first()
 
         if user and check_password_hash(user.password, password):
+            login_user(user)
             session['logged_in'] = True
             session['user_id'] = user.user_id
             session['username'] = user.username
             session['role'] = user.role
+
+            log_action(f"User logged in: {user.username}")
 
             if user.must_change_password:
                 flash("You must change your password before proceeding.", "warning")
@@ -213,6 +213,7 @@ def add_users():
 @login_required
 def edit_users(user_id):
     user = User.query.get(user_id)
+    log_action(f"Accessed edit page for user: {user.username} (ID: {user.user_id})")
     return render_template('edit_users.html', user=user)
 
 
@@ -245,6 +246,7 @@ def delete_users(user_id):
     if user:
         db.session.delete(user)
         db.session.commit()
+        log_action(f"Deleted user: {user.username} (ID: {user.user_id})")
     return redirect(url_for('routes.users'))
 
 
@@ -306,11 +308,13 @@ def add_employee():
     name = request.form.get('name')
     email = request.form.get('email')
     add_employee_to_db(employeeid, name, email)
+    log_action(f"Added employee: {name} (ID: {employeeid})")
     return redirect(url_for('routes.employee'))
 
 @routes.route('/edit/<int:id>')
 def edit_employee(id):
     employee = get_employee_by_id(id)
+    log_action(f"Accessed edit page for employee: {employee.name} (ID: {employee.employeeid})")
     return render_template('edit_employee.html', employee=employee)
 
 @routes.route('/update/<int:id>', methods=['POST'])
@@ -319,11 +323,15 @@ def update_employee(id):
     name = request.form.get('name')
     email = request.form.get('email')
     update_employee_in_db(id, employeeid, name, email)
+    log_action(f"Updated employee: {name} (ID: {employeeid})")
     return redirect(url_for('routes.employee'))
 
 @routes.route('/delete/<int:id>')
 def delete_employee(id):
-    delete_employee_from_db(id)
+    employee = get_employee_by_id(id)
+    if employee:
+        delete_employee_from_db(id)
+        log_action(f"Deleted employee: {employee.name} (ID: {employee.employeeid})")
     return redirect(url_for('routes.employee'))
 
 
@@ -429,7 +437,7 @@ def add_events():
 
     db.session.add(new_event)
     db.session.commit()
-
+    log_action(f"Added event: {session_title} (ID: {id_event})")
     return redirect(url_for('routes.events'))
 
 
@@ -438,6 +446,7 @@ def add_events():
 def edit_event(id_event):
    
     event = get_event_by_id(id_event)
+    log_action(f"Accessed edit page for event: {event.session_title} (ID: {id_event})")
     return render_template('edit_event.html', event=event)
 
 @routes.route('/events/update/<id_event>', methods=['POST'])
@@ -453,6 +462,8 @@ def update_event(id_event):
     session_subtopic = request.form.get('session_subtopic')
 
     update_event_in_db(id_event, date, time, organizer, cpd_points, session_title, session_topic, session_subtopic)
+
+    log_action(f"Updated event: {session_title} (ID: {id_event})")
     return redirect(url_for('routes.events'))
 
 @routes.route('/delete_event/<string:id_event>')
@@ -537,6 +548,7 @@ def report():
 @routes.route('/report/delete/<int:id_report>')
 def delete_report(id_report):
     delete_report_from_db(id_report)
+    log_action(f"Deleted report: {id_report}")
     return redirect(url_for('routes.report'))
 
 
@@ -776,7 +788,7 @@ def register_event():
         flash('Event registered successfully!', 'success')
     else:
         flash('Could not register event. Duplicate entry?', 'danger')
-
+    log_action(f"Added report for employee: {employee.name} (ID: {employee.employeeid}) for event: {event.session_title} (ID: {id_event})")
     return redirect(url_for('routes.base'))
 
 
@@ -1043,3 +1055,35 @@ def send_email_to_users():
 
     flash('Upcoming event emails sent to all users.', 'success')
     return redirect(url_for('routes.home'))
+
+#================================= Audit Log Routes =================================#
+
+def log_action(action):
+    if current_user.is_authenticated:
+        log = AuditLog(
+            user_id=current_user.user_id,
+            username=current_user.username,
+            action=action,
+            ip_address=request.remote_addr
+            )
+        db.session.add(log)
+        db.session.commit()
+
+        # Delete the older logs
+        total_logs = AuditLog.query.count()
+        if total_logs > 200:
+            # Get logs to delete (oldest ones)
+            extra_logs = AuditLog.query.order_by(AuditLog.timestamp.asc()).limit(total_logs - 200).all()
+            for old_log in extra_logs:
+                db.session.delete(old_log)
+            db.session.commit()
+
+@routes.route('/audit_log')
+@login_required
+def audit_log():
+    print(f"User role is: {current_user.role}")
+    if getattr(current_user, 'role', None) not in ['admin', 'super_admin']:
+        return "Access denied", 403
+
+    logs = AuditLog.query.order_by(AuditLog.timestamp.desc()).all()
+    return render_template("audit_log.html", logs=logs)

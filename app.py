@@ -3,6 +3,8 @@ from flask import Flask, session
 from extensions import db, migrate, login_manager, mail  # Import from extensions
 from routes import routes  # Now safe to import
 from config import Config
+from flask_login import LoginManager
+from models import User
 
 
 
@@ -30,3 +32,6 @@ app.register_blueprint(routes)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
+
+def load_user(user_id):
+    return User.query.get(int(user_id))

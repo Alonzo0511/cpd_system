@@ -2,15 +2,19 @@ from extensions import db
 from datetime import datetime
 from sqlalchemy.sql import func
 from sqlalchemy import text
+from flask_login import UserMixin
 
 
-class User(db.Model):
+class User(db.Model, UserMixin):
     __tablename__ = 'users'
     user_id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(50), nullable=False)
     must_change_password = db.Column(db.Boolean, default=False, nullable=False)
+
+    def get_id(self):
+        return self.user_id
 
 class Employee(db.Model):
     __tablename__ = 'employee'
@@ -61,3 +65,19 @@ class Report(db.Model):
     session_title = db.Column(db.String(50), nullable=False)
     cpd_points = db.Column(db.Integer, nullable=False)
     comment = db.Column(db.Text, nullable=True)
+
+
+class AuditLog(db.Model):
+    __tablename__='audit_log'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, nullable=False)
+    username = db.Column(db.String(100), nullable=False)
+    action = db.Column(db.String(255), nullable=False)
+    timestamp = db.Column(
+        db.DateTime(timezone=True),
+        server_default=text('CURRENT_TIMESTAMP'),
+        default=func.now(),
+        onupdate=func.now(),
+        nullable=False
+    )
+    ip_address = db.Column(db.String(50), nullable=False)

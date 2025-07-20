@@ -150,6 +150,7 @@
               <li class="nav-item"><a class="nav-link" href="{{ url_for('routes.employee') }}"><i class="fas fa-users me-1"></i>Employees</a></li>
               <li class="nav-item"><a class="nav-link" href="{{ url_for('routes.events') }}"><i class="fas fa-calendar me-1"></i>Events</a></li>
               <li class="nav-item"><a class="nav-link" href="{{ url_for('routes.report') }}"><i class="fas fa-chart-bar me-1"></i>Report</a></li>
+              <li class="nav-item"><a class="nav-link" href="{{ url_for('routes.audit_log') }}"><i class="fas fa-file-alt me-1"></i>Audit Log</a></li>
               {% if session['role'] == 'super_admin' %}
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('routes.users') }}"><i class="fas fa-user-shield me-1"></i>Manage Users</a></li>
               {% endif %}
