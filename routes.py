@@ -206,6 +206,7 @@ def add_users():
 
     # Show the password on screen or send via email (you choose)
     flash(f"User added successfully. Temporary password: {generated_password}", "info")
+    log_action(f"Added user: {username} with role: {role}")
     return redirect(url_for('routes.users'))
 
 
@@ -235,7 +236,7 @@ def update_users(user_id):
         user.password = password
         user.role = role
         db.session.commit()
-
+        log_action(f"Updated user: {username} (ID: {user.user_id})")
     return redirect(url_for('routes.users'))
 
 
@@ -306,8 +307,9 @@ def employee():
 def add_employee():
     employeeid = request.form.get('employeeid')
     name = request.form.get('name')
+    gender = request.form.get('gender')
     email = request.form.get('email')
-    add_employee_to_db(employeeid, name, email)
+    add_employee_to_db(employeeid, name, gender, email)
     log_action(f"Added employee: {name} (ID: {employeeid})")
     return redirect(url_for('routes.employee'))
 
@@ -321,8 +323,9 @@ def edit_employee(id):
 def update_employee(id):
     employeeid = request.form.get('employeeid')
     name = request.form.get('name')
+    gender = request.form.get('gender')
     email = request.form.get('email')
-    update_employee_in_db(id, employeeid, name, email)
+    update_employee_in_db(id, employeeid, name, gender, email)
     log_action(f"Updated employee: {name} (ID: {employeeid})")
     return redirect(url_for('routes.employee'))
 
@@ -338,18 +341,19 @@ def delete_employee(id):
 def get_all_employees():
     return Employee.query.all()
 
-def add_employee_to_db(employeeid, name, email):
-    new_employee = Employee(employeeid=employeeid, name=name, email=email)
+def add_employee_to_db(employeeid, name, gender, email):
+    new_employee = Employee(employeeid=employeeid, name=name, gender=gender, email=email)
     db.session.add(new_employee)
     db.session.commit()
 
 def get_employee_by_id(id):
     return Employee.query.get(id)
 
-def update_employee_in_db(id, employeeid, name, email):
+def update_employee_in_db(id, employeeid, name, gender, email):
     emp = Employee.query.get(id)
     emp.employeeid = employeeid
     emp.name = name
+    emp.gender = gender
     emp.email = email
     db.session.commit()
 
@@ -362,6 +366,7 @@ def get_employee_paginated(search='', page=1, per_page=5):
     query = Employee.query.filter(
         db.or_(
             Employee.name.like(f"%{search}%"),
+            Employee.gender.like(f"%{search}%"),
             Employee.email.like(f"%{search}%")
 
         )
@@ -575,6 +580,7 @@ def general_report():
     query = db.session.query(
         Employee.employeeid,
         Employee.name,
+        Employee.gender,
         Employee.email,
         func.sum(Report.cpd_points).label('total_points')
     ).join(Report, Employee.id == Report.employee_id)
@@ -582,7 +588,7 @@ def general_report():
     if start_date and end_date:
         query = query.filter(Report.date.between(start_date, end_date))
 
-    query = query.group_by(Employee.employeeid, Employee.name, Employee.email)\
+    query = query.group_by(Employee.employeeid, Employee.name, Employee.gender, Employee.email)\
                  .order_by(func.sum(Report.cpd_points).desc())
 
     data = query.all()
@@ -615,6 +621,7 @@ def export_report():
     query = db.session.query(
         Employee.employeeid,
         Employee.name,
+        Employee.gender,
         Employee.email,
         func.sum(Report.cpd_points).label('total_points')
     ).join(Report, Employee.id == Report.employee_id)
@@ -630,10 +637,10 @@ def export_report():
     # Create CSV response
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(['Employee ID', 'Name', 'Email', 'Total CPD Points'])
+    writer.writerow(['Employee ID', 'Name', 'Gender', 'Email', 'Total CPD Points'])
 
     for row in data:
-        writer.writerow([row[0], row[1], row[2], int(row[3]) if row[3] else 0])
+        writer.writerow([row[0], row[1], row[2], row[3], int(row[4]) if row[4] else 0])
 
     output.seek(0)
     return Response(
@@ -663,6 +670,7 @@ def get_report():
         Report.id_report,
         Employee.employeeid,  # or Report.employee_id if you want the PK
         Employee.name,
+        Employee.gender,
         Employee.email,
         Event.date,
         Report.id_event,
@@ -719,6 +727,7 @@ def get_report_paginated(search, page, per_page):
         Report.timestamp,
         Employee.employeeid,  # ✅ show employeeid not employee_id
         Employee.name,
+        Employee.gender,
         Event.date,
         Employee.email,
         Report.id_event,
@@ -846,6 +855,7 @@ def export_report_csv():
         Report.employee_id,
         Employee.employeeid,
         Employee.name,
+        Employee.gender,
         Event.date,
         Employee.email,
         Report.id_event,
@@ -864,7 +874,7 @@ def export_report_csv():
     # Write header
     cw.writerow([
         "Report ID", "Timestamp", "Employee DB ID", "Employee Code",
-        "Employee Name", "Event Date", "Employee Email", "Event ID",
+        "Employee Name", "Employee Gender", "Event Date", "Employee Email", "Event ID",
         "Session Title", "CPD Points", "Comment"
     ])
     # Write rows
@@ -920,6 +930,7 @@ def import_report_csv():
                 employee_id=employee.id,
                 email=row['email'],
                 name=row['name'],
+                gender=row['gender'],
                 date=event_date,
                 id_event=row['id_event'],
                 session_title=row['session_title'],

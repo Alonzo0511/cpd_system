@@ -129,9 +129,18 @@
                                     <input type="text" name="name" class="form-control" placeholder="Naran Kompletu" required>
                                 </div>
                                 <div class="col-md-3">
+                                    <label for="gender">Gender</label>
+                                    <select name="gender" id="gender" class="form-select" required>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
                                     <label class="form-label small text-muted">Email Address</label>
                                     <input type="email" name="email" class="form-control" placeholder="Email Servisu" required>
                                 </div>
+
                                 <div class="col-md-3 d-flex align-items-end">
                                     <button type="submit" class="btn btn-success w-100">
                                         <i class="fas fa-plus me-1"></i> Add Employee
@@ -156,6 +165,7 @@
                                         <!-- <th><i class="fas fa-hashtag me-1"></i> ID</th> -->
                                         <th><i class="fas fa-id-card me-1"></i> Employee ID</th>
                                         <th><i class="fas fa-user me-1"></i> Name</th>
+                                        <th><i class="fas fa-venus-mars me-1"></i> Gender
                                         <th><i class="fas fa-envelope me-1"></i> Email</th>
                                         <th><i class="fas fa-cog me-1"></i> Actions</th>
                                     </tr>
@@ -166,6 +176,7 @@
                                         <!-- <td>{{ emp.id }}</td> -->
                                         <td>{{ emp.employeeid }}</td>
                                         <td>{{ emp.name }}</td>
+                                        <td>{{ emp.gender }}</td>
                                         <td>{{ emp.email }}</td>                                    
                                         <td class="action-buttons">
                                             <a href="{{ url_for('routes.edit_employee', id=emp.id) }}" 

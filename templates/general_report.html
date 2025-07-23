@@ -21,7 +21,7 @@
     <!-- Logo and Title -->
     <div class="text-center mb-4">
         <img src="{{ url_for('static', filename='images/maluk-timor-logo-login.png') }}" alt="Logo" class="logo mb-2">
-        <h3>General CPD Report</h3>
+        <h3>Maluk Timor CPD Report</h3>
     </div>
 
     <!-- Filter Form -->
@@ -46,8 +46,14 @@
 
     <!-- Report Table -->
     {% if data %}
+    {% set male_count = data | selectattr('2', 'equalto', 'Male') | list | length %}
+    {% set female_count = data | selectattr('2', 'equalto', 'Female') | list | length %}
+    {% set other_count = data | selectattr('2', 'equalto', 'Other') | list | length %}
             <p class="fw-bold">
-          Total Employees: <strong>{{ data|length }}</strong>
+            Total Employees: <strong>{{ data | length }}</strong><br>
+            Male: <strong>{{ male_count }}</strong><br>
+            Female: <strong>{{ female_count }}</strong><br>
+            Other: <strong>{{ other_count }}</strong>
         </p>
         <div class="table-responsive">
             <table class="table table-bordered">
@@ -55,6 +61,7 @@
                     <tr>
                         <th>Employee ID</th>
                         <th>Name</th>
+                        <th>Gender</th>
                         <th>Email</th>
                         <th>Total CPD Points</th>
                     </tr>
@@ -65,7 +72,8 @@
                             <td>{{ row[0] }}</td>
                             <td>{{ row[1] }}</td>
                             <td>{{ row[2] }}</td>
-                            <td>{{ row[3] |int | string }}</td>
+                            <td>{{ row[3] }}</td>
+                            <td>{{ row[4] |int | string }}</td>
                         </tr>
                     {% endfor %}
                 </tbody>

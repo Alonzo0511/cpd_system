@@ -94,7 +94,14 @@
                     <input type="text" id="name" name="name" class="form-control" 
                         value="{{ employee.name }}" required>
                 </div>
-                
+                <div class="mb-4">
+                    <label for="gender" class="form-label">Gender</label>
+                    <select id="gender" name="gender" class="form-select" required>
+                        <option value="Male" { employee.gender = 'Male' }selected{ endif }>Male</option>
+                        <option value="Female" { employee.gender = 'Female' }selected{ endif }>Female</option>
+                        <option value="Other" { employee.gender = 'Other' }selected{ endif }>Other</option>
+                    </select>
+                </div>
                 <div class="mb-4">
                     <label for="email" class="form-label">Email Address</label>
                     <input type="email" id="email" name="email" class="form-control" 

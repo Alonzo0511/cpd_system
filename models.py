@@ -21,6 +21,7 @@ class Employee(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     employeeid = db.Column(db.String(50), nullable=False, unique=True)
     name = db.Column(db.String(100), nullable=False)
+    gender = db.Column(db.String(10), nullable=False)
     email = db.Column(db.String(100), nullable=False)
     reports = db.relationship('Report', backref='employee', lazy=True)
 
@@ -60,6 +61,7 @@ class Report(db.Model):
     employee_id = db.Column(db.Integer, db.ForeignKey('employee.id'), nullable=False)
     email = db.Column(db.String(120), nullable=False)
     name = db.Column(db.String(100), nullable=False)
+    gender = db.Column(db.String(10), nullable=False)
     date = db.Column(db.Date, nullable=False)
     id_event = db.Column(db.String(10), db.ForeignKey('events.id_event'), nullable=False)
     session_title = db.Column(db.String(50), nullable=False)
