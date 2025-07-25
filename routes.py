@@ -670,7 +670,6 @@ def get_report():
         Report.id_report,
         Employee.employeeid,  # or Report.employee_id if you want the PK
         Employee.name,
-        Employee.gender,
         Employee.email,
         Event.date,
         Report.id_event,
