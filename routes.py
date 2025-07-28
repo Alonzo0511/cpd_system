@@ -157,7 +157,7 @@ def reset_password(user_id):
         user.must_change_password = True
         db.session.commit()
 
-        flash(f"Password rest. New password: {new_password}", "info")
+        flash(f"Password reset. New password: {new_password}", "info")
         # Optionally, you can send the new password via email
     else:
         flash("User not found!", "danger")
@@ -243,13 +243,18 @@ def update_users(user_id):
 @routes.route('/delete_users/<int:user_id>', methods=['GET'])
 @login_required
 def delete_users(user_id):
-    user = User.query.get(user_id)
-    if user:
-        db.session.delete(user)
-        db.session.commit()
-        log_action(f"Deleted user: {user.username} (ID: {user.user_id})")
-    return redirect(url_for('routes.users'))
+    user_to_delete = User.query.get(user_id)
 
+    if current_user.user_id == user_id:
+        flash("You cannot delete your own account!", "danger")
+        return redirect(url_for('routes.users'))
+    try:
+        db.session.delete(user_to_delete)
+        db.session.commit()
+        flash("User deleted successfully.", "success")
+    except Exception as e:
+        flash(f"Error deleting user: {str(e)}", "danger")
+    return redirect(url_for('routes.users'))
 
 
 def get_users_by_username(username):

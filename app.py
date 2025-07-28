@@ -35,3 +35,19 @@ if __name__ == '__main__':
 
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+with app.app_context():
+    db.create_all()  # Make sure tables are created
+    
+    # Check if super admin already exists
+    if not User.query.filter_by(username='superadmin@maluktimor.org').first():
+        super_admin = User(
+            username='superadmin@maluktimor.org',
+            role='super_admin'
+        )
+        super_admin.set_password('superadmin')  # default password
+        db.session.add(super_admin)
+        db.session.commit()
+        print("Super Admin created.")
+    else:
+        print("Super Admin already exists.")
