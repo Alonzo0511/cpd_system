@@ -189,6 +189,7 @@ def users():
 def add_users():
     username = request.form.get('username')
     role = request.form.get('role')
+    employee_code = request.form.get('employee_id')  # New line
 
     # Generate a random password
     generated_password = generate_random_password()
@@ -198,13 +199,20 @@ def add_users():
         username=username,
         password=hashed_password,
         role=role,
-        must_change_password=True  # force change on first login
+        must_change_password=True
     )
+
+    # Link to Employee
+    if employee_code:
+        employee = Employee.query.filter_by(employeeid=employee_code).first()
+        if employee:
+            new_user.employee = employee
+        else:
+            flash('Employee ID not found, user created without employee link.', 'warning')
 
     db.session.add(new_user)
     db.session.commit()
 
-    # Show the password on screen or send via email (you choose)
     flash(f"User added successfully. Temporary password: {generated_password}", "info")
     log_action(f"Added user: {username} with role: {role}")
     return redirect(url_for('routes.users'))
@@ -221,23 +229,32 @@ def edit_users(user_id):
 @routes.route('/update_users/<int:user_id>', methods=['POST'])
 @login_required
 def update_users(user_id):
-    username = request.form.get('username')
-    password = request.form.get('password')
-    confirm_password = request.form.get('confirm_password')
-    role = request.form.get('role')
+    user = User.query.get_or_404(user_id)
 
-    if password != confirm_password:
-        flash('Passwords do not match!', 'danger')
-        return redirect(url_for('routes.edit_users', user_id=user_id))
+    user.username = request.form['username']
+    password = request.form['password']
+    if password:
+        user.set_password(password)
 
-    user = User.query.get(user_id)
-    if user:
-        user.username = username
-        user.password = password
-        user.role = role
-        db.session.commit()
-        log_action(f"Updated user: {username} (ID: {user.user_id})")
+    user.role = request.form['role']
+
+    # Handle Employee ID linking
+    employee_code = request.form.get('employee_id')
+    if employee_code:
+        employee = Employee.query.filter_by(employeeid=employee_code).first()
+        if employee:
+            user.employee = employee
+        else:
+            flash('Employee ID not found, user saved without employee link.', 'warning')
+            user.employee = None
+    else:
+        user.employee = None  # Clear if left blank
+
+    db.session.commit()
+    flash('User updated successfully.', 'success')
+    log_action(f"Updated user: {user.username} (ID: {user.user_id})")
     return redirect(url_for('routes.users'))
+
 
 
 @routes.route('/delete_users/<int:user_id>', methods=['GET'])
@@ -776,31 +793,34 @@ def count_report(search):
 
 @routes.route('/register_event', methods=['POST'])
 def register_event():
-    employeeid = request.form['employee_id']  # Get the string employee code
     id_event = request.form['id_event']
     comment = request.form.get('comment', '')
+
+    # Fetch the logged-in user
+    user = User.query.get(current_user.get_id())
+
+    # Lookup the associated employee by user.username = employee.email or via FK
+    employee = Employee.query.filter_by(email=user.username).first()  # or however they are linked
+
+    if not employee:
+        flash('Employee not found!', 'danger')
+        return redirect(url_for('routes.base'))
 
     event = Event.query.filter_by(id_event=id_event).first()
     if not event:
         flash('Event not found!', 'danger')
         return redirect(url_for('routes.base'))
 
-    # Look up employee by code!
-    employee = Employee.query.filter_by(employeeid=employeeid).first()
-    if not employee:
-        flash('Employee not found!', 'danger')
-        return redirect(url_for('routes.base'))
-
     session_title = event.session_title
     cpd_points = event.cpd_points
 
-    # Pass the PK (integer) to save_report!
     success = save_report(employee.id, id_event, session_title, cpd_points, comment)
 
     if success:
         flash('Event registered successfully!', 'success')
     else:
         flash('Could not register event. Duplicate entry?', 'danger')
+
     log_action(f"Added report for employee: {employee.name} (ID: {employee.employeeid}) for event: {event.session_title} (ID: {id_event})")
     return redirect(url_for('routes.base'))
 
@@ -830,6 +850,7 @@ def save_report(employee_id, id_event, session_title, cpd_points, comment):
             employee_id=employee_id,
             email=employee.email,
             name=employee.name,
+            gender=employee.gender, 
             date=event.date,
             id_event=id_event,
             session_title=session_title,

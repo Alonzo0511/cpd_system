@@ -14,6 +14,9 @@ class User(db.Model, UserMixin):
     role = db.Column(db.String(50), nullable=False) 
     must_change_password = db.Column(db.Boolean, default=False, nullable=False)
 
+    employee_id = db.Column(db.Integer, db.ForeignKey('employee.id'), nullable=True)
+    employee = db.relationship('Employee', backref='user', uselist=False)
+
     def set_password(self, password):
         self.password = generate_password_hash(password)
 

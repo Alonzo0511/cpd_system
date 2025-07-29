@@ -111,6 +111,12 @@
                         <option value="super_admin" {% if user.role == 'super_admin' %}selected{% endif %}>Super Admin</option>
                     </select>
                 </div>
+                <div class="mb-4">
+                    <label for="employee_id" class="form-label">Employee ID</label>
+                    <input type="text" id="employee_id" name="employee_id" class="form-control"
+                        value="{{ user.employee.employeeid if user.employee else '' }}">
+                </div>
+
 
                 <div class="action-buttons mt-4">
                     <a href="{{ url_for('routes.users') }}" class="btn btn-secondary">
