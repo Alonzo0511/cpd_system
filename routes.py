@@ -677,20 +677,23 @@ def export_report():
 #========================================== Individual Report ===========================================#
 
 @routes.route('/get_report', methods=['POST'])
+@login_required
 def get_report():
-    employeeid = request.form['employeeid']
     year = request.form.get('year')
 
-    # Look up the primary key for this employeeid
-    employee = Employee.query.filter_by(employeeid=employeeid).first()
+    # Fetch the logged-in user
+    user = User.query.get(current_user.get_id())
+
+    # Look up the Employee record associated with the user
+    employee = user.employee  # Assuming User.employee relationship is set
     if not employee:
-        flash('No such employee ID!', 'danger')
+        flash('No employee record linked to your user account.', 'danger')
         return redirect(url_for('routes.base'))
 
-    # Build the query using employee_id (the integer PK)
+    # Query reports for this employee
     query = db.session.query(
         Report.id_report,
-        Employee.employeeid,  # or Report.employee_id if you want the PK
+        Employee.employeeid,
         Employee.name,
         Employee.email,
         Event.date,
@@ -708,10 +711,9 @@ def get_report():
     individual_reports = query.order_by(Event.date.desc()).all()
 
     if not individual_reports:
-        flash('No reports found for this employee ID or year!', 'warning')
+        flash('No reports found for your account.', 'warning')
         return redirect(url_for('routes.base'))
 
-    # cpd_points is at index 7
     total_points = sum(int(report[7]) for report in individual_reports)
 
     year_query = db.session.query(

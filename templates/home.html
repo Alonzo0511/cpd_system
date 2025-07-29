@@ -145,6 +145,15 @@
         <div class="collapse navbar-collapse" id="navbarNavDropdown">
           <ul class="navbar-nav ms-auto align-items-center">
             {% if session['role'] == 'user' %}
+            <li class="nav-item">
+    <form id="getReportForm" method="POST" action="{{ url_for('routes.get_report') }}">
+        <!-- Optional: Add hidden year field if needed -->
+            <button type="submit" class="nav-link btn btn-link p-0 m-0" style="text-decoration: none;">
+                <i class="fas fa-chart-bar me-1"></i> My Report
+            </button>
+        </form>
+    </li>
+
               <li class="nav-item"><a class="nav-link" href="{{ url_for('routes.base') }}"><i class="fas fa-edit me-1"></i>Event Registration</a></li>
             {% elif session['role'] in ['admin','super_admin'] %}
               <li class="nav-item"><a class="nav-link" href="{{ url_for('routes.employee') }}"><i class="fas fa-users me-1"></i>Employees</a></li>
