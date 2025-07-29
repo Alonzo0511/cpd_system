@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: flask-cpd-app
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: FLASK_ENV
+        value: Production
+      - key: SECRET_KEY
+        value: d21ffasda-secret-key
+      - key: MYSQL_HOST
+        value: mysql-cpd-db.onrender.com
+      - key: MYSQL_USER
+        value: root
+      - key: MYSQL_PASSWORD
+        value: 12345
+      - key: MYSQL_DB
+        value: cpd_db
+      - key: MAIL_USERNAME
+        value: cpd@maluktimor.org
+      - key: MAIL_PASSWORD
+        value: kvbm dhsr noqk srnz
