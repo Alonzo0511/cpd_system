@@ -21,3 +21,4 @@ services:
         value: cpd@maluktimor.org
       - key: MAIL_PASSWORD
         value: kvbm dhsr noqk srnz
+    migrationsCommand: flask db upgrade
