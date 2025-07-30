@@ -10,7 +10,7 @@ from models import User
 
 app = Flask(__name__)
 app.config.from_object(Config)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/cpd_db'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/cpd_db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'd21ffasda-secret-key'
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'  # Or your mail server
