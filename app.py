@@ -1,5 +1,5 @@
 # app.py
-from flask import Flask, session
+from flask import Flask
 from extensions import db, migrate, login_manager, mail  # Import from extensions
 from routes import routes  # Now safe to import
 from config import Config
