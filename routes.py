@@ -1098,27 +1098,24 @@ def send_email_to_users():
 
 def log_action(action):
     if current_user.is_authenticated:
-        # Get IP address from header or remote_addr
-        ip_address = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0].strip()
-
         log = AuditLog(
             user_id=current_user.user_id,
             username=current_user.username,
             action=action,
-            ip_address=ip_address,
-        )
+            ip_address=request.public_ip or request.remote_addr,
+            )
         db.session.add(log)
         db.session.commit()
 
-        # Keep only latest 200 logs
+        # Delete the older logs
         total_logs = AuditLog.query.count()
         if total_logs > 200:
-            old_logs = AuditLog.query.order_by(AuditLog.timestamp.asc()).limit(total_logs - 200).all()
-            for log in old_logs:
-                db.session.delete(log)
+            # Get logs to delete (oldest ones)
+            extra_logs = AuditLog.query.order_by(AuditLog.timestamp.asc()).limit(total_logs - 200).all()
+            for old_log in extra_logs:
+                db.session.delete(old_log)
             db.session.commit()
 
-            
 @routes.route('/audit_log')
 @login_required
 def audit_log():
