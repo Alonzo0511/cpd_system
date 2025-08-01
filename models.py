@@ -4,6 +4,7 @@ from sqlalchemy.sql import func
 from sqlalchemy import text
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
+import pytz
 
 
 class User(db.Model, UserMixin):
@@ -80,6 +81,9 @@ class Report(db.Model):
     comment = db.Column(db.Text, nullable=True)
 
 
+def current_timor_time():
+    tz = pytz.timezone('Asia/Dili')
+    return datetime.now(tz)
 class AuditLog(db.Model):
     __tablename__='audit_log'
     id = db.Column(db.Integer, primary_key=True)
