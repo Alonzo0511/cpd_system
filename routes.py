@@ -1102,7 +1102,7 @@ def log_action(action):
             user_id=current_user.user_id,
             username=current_user.username,
             action=action,
-            ip_address=request.remote_addr
+            ip_address=request.public_ip or request.remote_addr,
             )
         db.session.add(log)
         db.session.commit()
