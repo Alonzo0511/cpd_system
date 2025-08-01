@@ -5,12 +5,16 @@ from routes import routes  # Now safe to import
 from config import Config
 from flask_login import LoginManager
 from models import User
+from werkzeug.middleware.proxy_fix import ProxyFix
+
 
 
 
 app = Flask(__name__)
 app.config.from_object(Config)
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@localhost/cpd_db'
+
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'd21ffasda-secret-key'
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'  # Or your mail server
